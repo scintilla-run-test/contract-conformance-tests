@@ -602,8 +602,8 @@ mod tests {
         )
         .unwrap();
 
-        let error = cargo_binary_names(&root, &cargo).unwrap_err().to_string();
-        assert!(error.contains("no inferred source"));
+        let error = cargo_binary_names(&root, &cargo).unwrap_err();
+        assert!(format!("{error:#}").contains("no inferred source"));
         fs::remove_dir_all(root).unwrap();
     }
 
@@ -627,8 +627,8 @@ mod tests {
         )
         .unwrap();
 
-        let error = cargo_binary_names(&root, &cargo).unwrap_err().to_string();
-        assert!(error.contains("regular non-symlink file"));
+        let error = cargo_binary_names(&root, &cargo).unwrap_err();
+        assert!(format!("{error:#}").contains("regular non-symlink file"));
         fs::remove_dir_all(root).unwrap();
     }
 
@@ -650,8 +650,8 @@ mod tests {
         )
         .unwrap();
 
-        let error = cargo_binary_names(&root, &cargo).unwrap_err().to_string();
-        assert!(error.contains("ambiguous inferred sources"));
+        let error = cargo_binary_names(&root, &cargo).unwrap_err();
+        assert!(format!("{error:#}").contains("ambiguous inferred sources"));
         fs::remove_dir_all(root).unwrap();
     }
 
