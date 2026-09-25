@@ -1,10 +1,10 @@
 {
   "repository": "ORESoftware/ores-lambda",
-  "commit": "e76840173db60ec5d1ce4d6e78487b1db6faa615",
+  "commit": "542626f8f200d050de31f732049761e816383c74",
   "files": {
     "Cargo.toml": "ef71c73577f151059548781fee0799d091aa7a99",
     "crates/ores-lambda-conformance/Cargo.toml": "0408cf995222b95358cf03067dcfcdd22354673a",
-    "crates/ores-lambda-conformance/src/bin/ores-lambda.rs": "1da81817ae41772bc8ab25255e37f71c4e947783",
+    "crates/ores-lambda-conformance/src/bin/ores-lambda.rs": "6d8b1ead4fb8c4bd950ea20119d8518da8854860",
     "crates/ores-lambda-conformance/src/lifecycle.rs": "5a087ef61e4361d633f96158ef12efaf9c1bca6f",
     "crates/ores-lambda-conformance/src/main.rs": "8d6e24a550b28c165fb02cea9c9a10d00ab43311",
     "crates/ores-lambda-core/Cargo.toml": "c941bafbc65e269ea21181da0fc129a1a53244fa",
