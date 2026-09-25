@@ -26,9 +26,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git hash-object proofs/scintilla-infra-pr17/formal_model.rs)" = "21f6764457428151dcf9379e824461e572be614d"
-          grep -Fx 'source_head_sha=243bd57c7518d5c1760ef7b7c7cc3af09f92d3c2' proofs/scintilla-infra-pr17/SOURCE.lock
-          grep -Fx 'source_blob_sha=21f6764457428151dcf9379e824461e572be614d' proofs/scintilla-infra-pr17/SOURCE.lock
+          test "$(git hash-object proofs/scintilla-infra-pr17/formal_model.rs)" = "c0b6edf5757fe17fe3d8d784cee66209a9241b40"
+          grep -Fx 'source_head_sha=8c293ec67479e9879f4ed02be885e5374bfa3d89' proofs/scintilla-infra-pr17/SOURCE.lock
+          grep -Fx 'source_blob_sha=c0b6edf5757fe17fe3d8d784cee66209a9241b40' proofs/scintilla-infra-pr17/SOURCE.lock
       - name: Check Rust formatting
         run: rustfmt --edition 2021 --check proofs/scintilla-infra-pr17/formal_model.rs
       - name: Compile fail closed
