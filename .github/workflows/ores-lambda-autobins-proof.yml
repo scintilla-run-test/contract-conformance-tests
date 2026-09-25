@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - ".github/workflows/ores-lambda-autobins-proof.yml"
+      - "vendor/ores-lambda/**"
   workflow_dispatch:
 
 permissions:
@@ -19,20 +20,21 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Checkout exact ores-lambda head
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          repository: ORESoftware/ores-lambda
-          ref: e76840173db60ec5d1ce4d6e78487b1db6faa615
-          path: source
-          persist-credentials: false
-
-      - name: Verify exact source identity
+      - name: Verify exact source identities
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git -C source rev-parse HEAD)" = "e76840173db60ec5d1ce4d6e78487b1db6faa615"
-          test "$(git -C source hash-object crates/ores-lambda-conformance/src/bin/ores-lambda.rs)" = "1da81817ae41772bc8ab25255e37f71c4e947783"
+          python - <<'PY'
+          import json, subprocess
+          root = "vendor/ores-lambda"
+          lock = json.load(open(f"{root}/SOURCE.lock.json"))
+          assert lock["repository"] == "ORESoftware/ores-lambda"
+          assert lock["commit"] == "e76840173db60ec5d1ce4d6e78487b1db6faa615"
+          for path, expected in sorted(lock["files"].items()):
+              actual = subprocess.check_output(["git", "hash-object", f"{root}/{path}"], text=True).strip()
+              if actual != expected:
+                  raise SystemExit(f"{path}: expected {expected}, got {actual}")
+          PY
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87
@@ -41,13 +43,13 @@ jobs:
           components: rustfmt, clippy
 
       - name: Test Cargo target admission regressions
-        working-directory: source
+        working-directory: vendor/ores-lambda
         run: cargo test -p ores-lambda-conformance --bin ores-lambda cargo_binary_names
 
       - name: Format
-        working-directory: source
+        working-directory: vendor/ores-lambda
         run: cargo fmt --all -- --check
 
       - name: Clippy
-        working-directory: source
+        working-directory: vendor/ores-lambda
         run: cargo clippy -p ores-lambda-conformance --bin ores-lambda -- -D warnings
