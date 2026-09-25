@@ -4,10 +4,14 @@ on:
   pull_request:
     paths:
       - ".github/workflows/scintilla-release-contract-proof.yml"
+      - "vendor/scintilla-interfaces/**"
+      - "scripts/verify_scintilla_release_contract.py"
   push:
     branches: [main]
     paths:
       - ".github/workflows/scintilla-release-contract-proof.yml"
+      - "vendor/scintilla-interfaces/**"
+      - "scripts/verify_scintilla_release_contract.py"
 
 permissions:
   contents: read
@@ -16,42 +20,21 @@ jobs:
   release-contract:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
-    env:
-      SOURCE_REPOSITORY: scintilla-run/scintilla-interfaces
-      SOURCE_SHA: 8d6840d071214aca8e71604153bc4c1124693564
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-      - name: Require protected source credential
-        env:
-          TOKEN: ${{ secrets.TEST_FLEET_READ_TOKEN }}
-        run: test -n "$TOKEN"
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
         with:
-          repository: ${{ env.SOURCE_REPOSITORY }}
-          ref: ${{ env.SOURCE_SHA }}
-          token: ${{ secrets.TEST_FLEET_READ_TOKEN }}
-          path: source
-          persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
-        with:
-          node-version: "22"
-          cache: npm
-          cache-dependency-path: source/package-lock.json
-      - name: Install schema test dependencies
-        working-directory: source
-        run: npm ci
-      - name: Validate release schema and fixtures
-        working-directory: source
-        run: node --test tests/release-definition.test.mjs
-      - name: Prove API and route digests remain distinct
-        working-directory: source
+          python-version: "3.12"
+          cache: ""
+      - name: Verify vendored Git blob identities
+        shell: bash
         run: |
-          node - <<'NODE'
-          const fs = require('node:fs');
-          const schema = JSON.parse(fs.readFileSync('schemas/release-definition.schema.json'));
-          const fixture = JSON.parse(fs.readFileSync('fixtures/release-valid-flexible-middleware.json'));
-          if (!schema.required.includes('apiContractSha256')) throw new Error('apiContractSha256 is not required');
-          if (fixture.apiContractSha256 === fixture.routeTableSha256) throw new Error('API and route digests were conflated');
-          NODE
+          set -euo pipefail
+          test "$(git hash-object vendor/scintilla-interfaces/schemas/release-definition.schema.json)" = "b13a2385922d441e3c408c04a60c56a6d96d16a6"
+          test "$(git hash-object vendor/scintilla-interfaces/fixtures/release-valid-flexible-middleware.json)" = "76a1243023b26a547c121fd7859c68ab92b03a8b"
+      - name: Install pinned JSON Schema validator
+        run: python -m pip install --disable-pip-version-check jsonschema==4.25.1
+      - name: Execute release-contract proof
+        run: python scripts/verify_scintilla_release_contract.py
