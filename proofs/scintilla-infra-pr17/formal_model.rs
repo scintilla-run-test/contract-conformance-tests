@@ -94,12 +94,8 @@ fn main() {
         }
     }
 
-    assert!(seen.iter().any(|state| {
-        state.writer == Some(Region::A)
-    }));
-    assert!(seen.iter().any(|state| {
-        state.writer == Some(Region::B)
-    }));
+    assert!(seen.iter().any(|state| { state.writer == Some(Region::A) }));
+    assert!(seen.iter().any(|state| { state.writer == Some(Region::B) }));
 
     println!(
         "scintilla-infra formal model: explored {} states; invariants hold",
