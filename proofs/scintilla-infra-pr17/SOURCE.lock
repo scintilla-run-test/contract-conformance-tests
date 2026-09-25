@@ -1,0 +1,5 @@
+source_repo=scintilla-run/scintilla-infra
+source_pr=17
+source_head_sha=8c293ec67479e9879f4ed02be885e5374bfa3d89
+source_path=conformance/formal_model.rs
+source_blob_sha=c0b6edf5757fe17fe3d8d784cee66209a9241b40

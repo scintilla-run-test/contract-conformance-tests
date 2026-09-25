@@ -1,0 +1,41 @@
+name: Scintilla infra PR17 exact-head failover proof
+
+on:
+  pull_request:
+    paths:
+      - 'proofs/scintilla-infra-pr17/**'
+      - '.github/workflows/scintilla-infra-pr17-failover-proof.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  certify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Verify exact vendored source identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git hash-object proofs/scintilla-infra-pr17/formal_model.rs)" = "c0b6edf5757fe17fe3d8d784cee66209a9241b40"
+          grep -Fx 'source_head_sha=8c293ec67479e9879f4ed02be885e5374bfa3d89' proofs/scintilla-infra-pr17/SOURCE.lock
+          grep -Fx 'source_blob_sha=c0b6edf5757fe17fe3d8d784cee66209a9241b40' proofs/scintilla-infra-pr17/SOURCE.lock
+      - name: Check Rust formatting
+        run: rustfmt --edition 2021 --check proofs/scintilla-infra-pr17/formal_model.rs
+      - name: Compile fail closed
+        run: rustc --edition=2021 -D warnings proofs/scintilla-infra-pr17/formal_model.rs -o /tmp/scintilla-infra-formal-model
+      - name: Exhaust bounded failover state space
+        shell: bash
+        run: |
+          set -euo pipefail
+          /tmp/scintilla-infra-formal-model | tee /tmp/formal-model.out
+          grep -F 'invariants hold' /tmp/formal-model.out
