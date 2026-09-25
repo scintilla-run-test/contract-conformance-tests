@@ -1,0 +1,53 @@
+name: ores-lambda Cargo target admission exact-head proof
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/ores-lambda-autobins-proof.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  exact-head:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout proof carrier
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+
+      - name: Checkout exact ores-lambda head
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: ORESoftware/ores-lambda
+          ref: e76840173db60ec5d1ce4d6e78487b1db6faa615
+          path: source
+          persist-credentials: false
+
+      - name: Verify exact source identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C source rev-parse HEAD)" = "e76840173db60ec5d1ce4d6e78487b1db6faa615"
+          test "$(git -C source hash-object crates/ores-lambda-conformance/src/bin/ores-lambda.rs)" = "1da81817ae41772bc8ab25255e37f71c4e947783"
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+
+      - name: Test Cargo target admission regressions
+        working-directory: source
+        run: cargo test -p ores-lambda-conformance --bin ores-lambda cargo_binary_names
+
+      - name: Format
+        working-directory: source
+        run: cargo fmt --all -- --check
+
+      - name: Clippy
+        working-directory: source
+        run: cargo clippy -p ores-lambda-conformance --bin ores-lambda -- -D warnings
