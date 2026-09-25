@@ -29,7 +29,7 @@ jobs:
           root = "vendor/ores-lambda"
           lock = json.load(open(f"{root}/SOURCE.lock.json"))
           assert lock["repository"] == "ORESoftware/ores-lambda"
-          assert lock["commit"] == "e76840173db60ec5d1ce4d6e78487b1db6faa615"
+          assert lock["commit"] == "542626f8f200d050de31f732049761e816383c74"
           for path, expected in sorted(lock["files"].items()):
               actual = subprocess.check_output(["git", "hash-object", f"{root}/{path}"], text=True).strip()
               if actual != expected:
@@ -44,7 +44,7 @@ jobs:
 
       - name: Test Cargo target admission regressions
         working-directory: vendor/ores-lambda
-        run: cargo test -p ores-lambda-conformance --bin ores-lambda cargo_binary_names
+        run: cargo test -p ores-lambda-conformance --bin ores-lambda
 
       - name: Format
         working-directory: vendor/ores-lambda
