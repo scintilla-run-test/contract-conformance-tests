@@ -29,7 +29,7 @@ jobs:
           root = "vendor/ores-lambda"
           lock = json.load(open(f"{root}/SOURCE.lock.json"))
           assert lock["repository"] == "ORESoftware/ores-lambda"
-          assert lock["commit"] == "542626f8f200d050de31f732049761e816383c74"
+          assert lock["commit"] == "2d2d0b8ea3d10be3a3d218af587692631ae6c1d5"
           for path, expected in sorted(lock["files"].items()):
               actual = subprocess.check_output(["git", "hash-object", f"{root}/{path}"], text=True).strip()
               if actual != expected:
