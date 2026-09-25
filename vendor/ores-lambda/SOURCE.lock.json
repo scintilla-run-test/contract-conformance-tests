@@ -1,0 +1,23 @@
+{
+  "repository": "ORESoftware/ores-lambda",
+  "commit": "e76840173db60ec5d1ce4d6e78487b1db6faa615",
+  "files": {
+    "Cargo.toml": "ef71c73577f151059548781fee0799d091aa7a99",
+    "crates/ores-lambda-conformance/Cargo.toml": "0408cf995222b95358cf03067dcfcdd22354673a",
+    "crates/ores-lambda-conformance/src/bin/ores-lambda.rs": "1da81817ae41772bc8ab25255e37f71c4e947783",
+    "crates/ores-lambda-conformance/src/lifecycle.rs": "5a087ef61e4361d633f96158ef12efaf9c1bca6f",
+    "crates/ores-lambda-conformance/src/main.rs": "8d6e24a550b28c165fb02cea9c9a10d00ab43311",
+    "crates/ores-lambda-core/Cargo.toml": "c941bafbc65e269ea21181da0fc129a1a53244fa",
+    "crates/ores-lambda-core/src/config.rs": "dfd76b3da74f94acaef1dabd45f3855990a75e94",
+    "crates/ores-lambda-core/src/lib.rs": "d4234ee674f3cfcc8ceb1afa0d57e544ce994981",
+    "crates/ores-lambda-core/src/manifest.rs": "14222923f4625a94162517dc2921ecf9a5673d8c",
+    "crates/ores-lambda-core/src/manifest_copy.rs": "2e7acb0607fee134be7378d591e2e8b81f662e69",
+    "crates/ores-lambda-core/src/receipt.rs": "b3620c97f8b17c63489edfbc66636ba52bda4fb2",
+    "crates/ores-lambda-core/src/repository.rs": "744847bb639ae4ea1796ca8a908c25e30bda20b2",
+    "crates/ores-lambda-core/src/routing.rs": "7c130ed8f6fffd4e399063555ca419f305b6921f",
+    "crates/ores-lambda-ingress/Cargo.toml": "83240a220171be28c26c89b7b05cf9a809b04dbd",
+    "crates/ores-lambda-ingress/src/main.rs": "15ead132cc8e0b40abf9ccb4bf7579d9b85a0541",
+    "crates/ores-lambda-sdk/Cargo.toml": "8b26ef0a38ced43541834ec3f4d344d2c50fcfe0",
+    "crates/ores-lambda-sdk/src/lib.rs": "600acb31446e0e9ef7487e8e58d3c5519d97f8d8"
+  }
+}
