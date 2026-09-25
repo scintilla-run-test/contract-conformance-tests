@@ -1,0 +1,60 @@
+{
+  "apiVersion": "scintilla.run/v1",
+  "deploymentKey": "example/service/prod",
+  "releaseId": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "source": {
+    "repository": "example/service",
+    "commitSha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "routeTableSha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "apiContractSha256": "abababababababababababababababababababababababababababababababab",
+  "middleware": [
+    {
+      "id": "edge",
+      "role": "edge",
+      "placement": { "scope": "edge", "provider": "cloudflare" },
+      "runtime": "wasm",
+      "artifactSha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "generation": "edge-4",
+      "protocol": "ores.middleware.v1",
+      "requiredCapabilities": ["request.headers"],
+      "required": true
+    },
+    {
+      "id": "platform",
+      "role": "platform",
+      "placement": { "scope": "host", "provider": "scintilla", "region": "us-east" },
+      "runtime": "erlang",
+      "artifactSha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "generation": "p2-19",
+      "protocol": "scintilla.middleware.v1",
+      "requiredCapabilities": ["release.route", "telemetry.emit"],
+      "required": true
+    },
+    {
+      "id": "application",
+      "role": "application",
+      "placement": { "scope": "sidecar", "provider": "scintilla" },
+      "runtime": "rust",
+      "artifactSha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "generation": "app-8",
+      "protocol": "ores.p2.stdio.v1",
+      "requiredCapabilities": ["auth.verify", "http.fetch"],
+      "required": true
+    }
+  ],
+  "functions": [
+    {
+      "targetId": "users_api",
+      "functionId": "00000000-0000-0000-0000-000000000001",
+      "revision": 12,
+      "artifactSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+      "policySha256": "2222222222222222222222222222222222222222222222222222222222222222",
+      "runtime": "rust",
+      "carrier": "http_ingress",
+      "execution": "process",
+      "operationKeys": ["users.list", "users.find"]
+    }
+  ],
+  "createdAt": "2026-09-23T23:00:00Z"
+}
