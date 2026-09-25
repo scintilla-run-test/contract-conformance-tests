@@ -547,7 +547,6 @@ mod tests {
         fs::remove_dir_all(root).unwrap();
     }
 
-
     #[test]
     fn cargo_binary_names_honor_autobins_false() {
         let root = temp_root("autobins-false");
