@@ -1,0 +1,8 @@
+{
+  "repository": "scintilla-run/scintilla-interfaces",
+  "commitSha": "8d6840d071214aca8e71604153bc4c1124693564",
+  "blobs": {
+    "schemas/release-definition.schema.json": "b13a2385922d441e3c408c04a60c56a6d96d16a6",
+    "fixtures/release-valid-flexible-middleware.json": "76a1243023b26a547c121fd7859c68ab92b03a8b"
+  }
+}
