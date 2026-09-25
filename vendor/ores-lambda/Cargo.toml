@@ -1,0 +1,37 @@
+[workspace]
+members = [
+  "crates/ores-lambda-core",
+  "crates/ores-lambda-sdk",
+  "crates/ores-lambda-ingress",
+  "crates/ores-lambda-conformance",
+]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.88"
+license = "MIT"
+repository = "https://github.com/ORESoftware/ores-lambda"
+
+[workspace.dependencies]
+anyhow = "1"
+axum = { version = "0.8", features = ["http1", "json", "tokio"] }
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "http2"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+thiserror = "2"
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "net", "signal", "time"] }
+toml = "0.9"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
+url = "2"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all = "deny"
+pedantic = "allow"
+nursery = "allow"
