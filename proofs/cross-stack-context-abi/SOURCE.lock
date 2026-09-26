@@ -1,0 +1,15 @@
+scintilla_public_repo=scintilla-run/scintilla-lambda-pub-core
+scintilla_public_path=languages/rust/src/lib.rs
+scintilla_public_blob_sha=557065522aec649d8b10be308fe9eaf1cbfe4c23
+scintilla_internal_repo=scintilla-run/scintilla-lib-core
+scintilla_internal_path=src/module_contract.rs
+scintilla_internal_blob_sha=33f37f057f59d6ad0967ed1d3f50adaceaf65b9a
+beamscale_public_repo=beamscale/bmscl-pub-lib-core
+beamscale_public_path=src/bmscl.gleam
+beamscale_public_blob_sha=07c1566425e9087112f03b394571eb771c3a8e34
+beamscale_internal_repo=beamscale/bmscl-lib-core
+beamscale_internal_path=src/lib.rs
+beamscale_internal_blob_sha=211a471c81ba7586aa7cafed1f20e84470341503
+beamscale_authority_repo=beamscale/bmscl-interfaces
+beamscale_authority_path=typespec/main.tsp
+beamscale_authority_blob_sha=24a77ff8a5f5dd3fa1aa61fd55f4b6aaa0fb9b4f
