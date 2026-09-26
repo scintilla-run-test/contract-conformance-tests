@@ -22,7 +22,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git hash-object cert/context-abi/scintilla-lib-core/module_contract.rs)" = "67357e1f3819dfec50085be33b677111bd75e652"
+          test "$(git hash-object cert/context-abi/scintilla-lib-core/module_contract.rs)" = "9f949dd91420ffde2f5d9310eadeb15ad3dc8360"
           test "$(git hash-object cert/context-abi/runner/child-runtimes/lambda-context.mjs)" = "7cf5993ead39d72f7229ad861c3ea18404f6be4d"
           test "$(git hash-object cert/context-abi/runner/test/lambda-context.test.mjs)" = "cd8230747c006d09e556b82b7af3d75c135aa8d1"
       - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4
