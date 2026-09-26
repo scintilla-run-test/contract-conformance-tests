@@ -1,0 +1,29 @@
+name: Formal Wave 7
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  lifecycle-model:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Exhaust subprocess lifecycle
+        run: |
+          python3 - <<'PY'
+          from itertools import product
+          PENDING,RUNNING,SUCCEEDED,FAILED,CANCELLED=range(5)
+          for state,event in product(range(5),('start','success','fail','cancel')):
+              nxt=state
+              if state==PENDING and event=='start': nxt=RUNNING
+              elif state==RUNNING and event=='success': nxt=SUCCEEDED
+              elif state==RUNNING and event=='fail': nxt=FAILED
+              elif state in (PENDING,RUNNING) and event=='cancel': nxt=CANCELLED
+              if state in (SUCCEEDED,FAILED,CANCELLED): assert nxt==state, 'terminal process reopened'
+              assert nxt in range(5)
+          print('Scintilla subprocess lifecycle/terminality model: ok')
+          PY

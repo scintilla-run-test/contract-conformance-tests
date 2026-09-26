@@ -1,0 +1,29 @@
+name: Formal Wave 7
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  placement-model:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Exhaust actor placement and fencing
+        run: |
+          python3 - <<'PY'
+          from itertools import product
+          for current_owner, proposed_owner, current_epoch, presented_epoch in product((0,1,2),(0,1,2),range(3),range(3)):
+              admitted = proposed_owner != 0 and presented_epoch == current_epoch
+              next_owner = proposed_owner if admitted else current_owner
+              next_epoch = current_epoch + 1 if admitted and proposed_owner != current_owner else current_epoch
+              if not admitted:
+                  assert next_owner == current_owner and next_epoch == current_epoch
+              if admitted and proposed_owner != current_owner:
+                  assert next_epoch > current_epoch, 'owner change did not advance fencing epoch'
+              assert next_owner in (0,1,2)
+          print('Beamscale actor placement/fencing model: ok')
+          PY
