@@ -23,9 +23,15 @@ jobs:
           otp-version: "29.1.1"
           gleam-version: "1.18.1"
           version-type: strict
+      - name: Show canonical Gleam formatting
+        working-directory: proofs/bmscl-pub-lib-core-pr14
+        run: |
+          set -euo pipefail
+          gleam format src
+          git diff -- src/bmscl.gleam
+          git diff --exit-code -- src/bmscl.gleam
       - name: Test candidate source
         working-directory: proofs/bmscl-pub-lib-core-pr14
         run: |
-          gleam format --check src
           gleam check --target erlang
           gleam build --target erlang
