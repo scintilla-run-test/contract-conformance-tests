@@ -1,0 +1,5 @@
+source_repo=beamscale/bmscl-pub-lib-core
+source_pr=14
+source_head_sha=1161027c866653767825dbc26d48877f7c20c401
+source_bmscl_blob_sha=07c1566425e9087112f03b394571eb771c3a8e34
+source_gleam_toml_blob_sha=5c21f14400b2af0fb17b4b6394a050b94cab55ed
