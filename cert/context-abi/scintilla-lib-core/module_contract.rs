@@ -380,9 +380,7 @@ mod tests {
                 abi: CONTEXT_ABI_V1.into(),
                 invocation_id: "req-1".into(),
                 timeout_ms: 42,
-                traceparent: Some(
-                    "00-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-bbbbbbbbbbbbbbbb-01".into(),
-                ),
+                traceparent: Some("00-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-bbbbbbbbbbbbbbbb-01".into()),
             },
             db_pool_name: "primary".into(),
         };
