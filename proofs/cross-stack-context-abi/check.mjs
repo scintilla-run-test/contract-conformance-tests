@@ -25,7 +25,18 @@ for (const [text, label] of [
 ]) {
   requireText(beamscaleAuthority, text, "BeamScale TypeSpec authority " + label);
   requireText(beamscalePublic, text, "BeamScale public SDK " + label);
-  requireText(beamscaleInternal, text, "BeamScale internal core " + label);
+}
+
+// The private core intentionally consumes semantic descriptor/profile data
+// without duplicating the public wire/version literals. Guard the semantic
+// admission surface instead of creating a second authority.
+for (const text of [
+  "validate_shared_tier_for_module",
+  "EntrypointParity",
+  "CapabilityParity",
+  "HOSTED_PROFILE_V3_HTTP",
+]) {
+  requireText(beamscaleInternal, text, "BeamScale private admission");
 }
 
 console.log("cross-stack context/module ABI identity proof passed");
