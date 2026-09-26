@@ -1,0 +1,26 @@
+name: Formal Wave 7
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  quota-model:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Exhaust tenant actor quota bounds
+        run: |
+          python3 - <<'PY'
+          from itertools import product
+          quota=4
+          for admin, used, requested in product((False,True),range(quota+1),range(1,4)):
+              admitted=admin and used+requested<=quota
+              after=used+requested if admitted else used
+              assert 0<=after<=quota, 'actor quota exceeded'
+              if not admitted: assert after==used, 'rejected quota change mutated usage'
+          print('Beamscale tenant quota conservation model: ok')
+          PY
