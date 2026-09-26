@@ -1,0 +1,106 @@
+name: gleam-lambda-runner 48 WASI admission certification
+
+on:
+  pull_request:
+    paths:
+      - "proof/gleam-lambda-runner-48/**"
+      - ".github/workflows/gleam-lambda-runner-48-wasi-admission.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  exact-file-admission:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      SOURCE_HEAD: ff1b528de57b1eb4aecfeb3085a71195a08e9051
+    steps:
+      - name: Checkout carrier
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+
+      - name: Verify exact source Git blob identities
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="proof/gleam-lambda-runner-48"
+          test "$(git hash-object "$root/contract-admission/scintilla-wasi-component.v1.json")" = "4bd39afa4fd5ade02de2a8270baa3fddb8b8f1fd"
+          test "$(git hash-object "$root/test/wasi-component-contract-admission.test.mjs")" = "a538f1ea52d103d4d598208365267123a834f28c"
+          test "$(git hash-object "$root/source-workflow/typespec-json-schema-peer-authority.yml")" = "9df67d5b717dd48fff77a503a3fe55350a356af0"
+          printf 'source head: %s\n' "$SOURCE_HEAD"
+
+      - name: Verify workflow binds exact authority gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          workflow="proof/gleam-lambda-runner-48/source-workflow/typespec-json-schema-peer-authority.yml"
+          grep -F 'ORESoftware/typespec-json-schema-validator@813d5f021e02574f529a9553b670719f8f10d02c' "$workflow"
+          grep -F 'ORESoftware/typespec-json-schema-validator/actions/verify-contract-ir@813d5f021e02574f529a9553b670719f8f10d02c' "$workflow"
+          grep -F 'contract-admission/scintilla-wasi-component.v1.json' "$workflow"
+          grep -F 'test/wasi-component-contract-admission.test.mjs' "$workflow"
+
+      - name: Run exact source-bound admission tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd proof/gleam-lambda-runner-48
+          node --test test/wasi-component-contract-admission.test.mjs
+
+      - name: Re-check pinned upstream proof and artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd proof/gleam-lambda-runner-48
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { readFile } from 'node:fs/promises';
+
+          const manifest = JSON.parse(
+            await readFile('contract-admission/scintilla-wasi-component.v1.json', 'utf8'),
+          );
+          const proofRepository = manifest.admitted_evidence.proof_repository;
+          const runId = manifest.admitted_evidence.workflow_run_id;
+
+          const runResponse = await fetch(
+            `https://api.github.com/repos/${proofRepository}/actions/runs/${runId}`,
+            { headers: { Accept: 'application/vnd.github+json' } },
+          );
+          assert.equal(runResponse.ok, true);
+          const run = await runResponse.json();
+          assert.equal(run.status, 'completed');
+          assert.equal(run.conclusion, 'success');
+          assert.equal(run.head_sha, manifest.admitted_evidence.proof_head_commit);
+
+          const artifactsResponse = await fetch(
+            `https://api.github.com/repos/${proofRepository}/actions/runs/${runId}/artifacts`,
+            { headers: { Accept: 'application/vnd.github+json' } },
+          );
+          assert.equal(artifactsResponse.ok, true);
+          const artifacts = await artifactsResponse.json();
+          const matching = artifacts.artifacts.find(
+            (artifact) => artifact.digest === manifest.admitted_evidence.artifact_digest,
+          );
+          assert.ok(matching, 'pinned evidence artifact digest must still exist');
+          assert.equal(matching.expired, false);
+          NODE
+
+      - name: Verify fail-closed consumer policy
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { readFile } from 'node:fs/promises';
+          const manifest = JSON.parse(
+            await readFile('proof/gleam-lambda-runner-48/contract-admission/scintilla-wasi-component.v1.json', 'utf8'),
+          );
+          assert.equal(manifest.contract.authority_precedence, 'none');
+          assert.equal(manifest.consumer_policy.allow_local_reauthoring, false);
+          assert.equal(manifest.consumer_policy.allow_generated_projection_as_authority, false);
+          assert.equal(manifest.consumer_policy.require_exact_authority_commit, true);
+          assert.equal(manifest.consumer_policy.require_admissible_contract_ir, true);
+          assert.equal(manifest.consumer_policy.fail_closed_on_evidence_mismatch, true);
+          NODE
