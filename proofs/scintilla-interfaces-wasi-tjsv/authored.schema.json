@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "authored.scintilla-wasi-component-v1.schema.json",
+  "$defs": {
+    "WasiRuntimeProfile": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "WasiRuntimeProfile",
+      "type": "string",
+      "enum": ["wasi_0_2", "wasi_0_3"]
+    },
+    "InvocationKind": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "InvocationKind",
+      "type": "string",
+      "enum": ["unary", "server_stream", "client_stream", "bidi_stream"]
+    },
+    "CapabilityKind": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "CapabilityKind",
+      "type": "string",
+      "enum": [
+        "outbound_network",
+        "listen_network",
+        "filesystem_read",
+        "filesystem_write",
+        "clock",
+        "random",
+        "env_config",
+        "secret",
+        "kv",
+        "database",
+        "queue",
+        "object_storage"
+      ]
+    },
+    "CapabilityRequirement": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "CapabilityRequirement",
+      "type": "object",
+      "properties": {
+        "kind": { "$ref": "CapabilityKind" },
+        "required": { "type": "boolean" },
+        "resource_id": { "type": "string" }
+      },
+      "required": ["kind", "required"],
+      "unevaluatedProperties": false
+    },
+    "WasiComponentContractV1": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "WasiComponentContractV1",
+      "type": "object",
+      "properties": {
+        "schema_version": { "const": "scintilla.wasi-component/v1" },
+        "component_id": { "type": "string" },
+        "wit_package": { "type": "string" },
+        "wit_world": { "type": "string" },
+        "runtime_profile": { "$ref": "WasiRuntimeProfile" },
+        "invocation_kind": { "$ref": "InvocationKind" },
+        "capabilities": {
+          "type": "array",
+          "items": { "$ref": "CapabilityRequirement" }
+        }
+      },
+      "required": [
+        "schema_version",
+        "component_id",
+        "wit_package",
+        "wit_world",
+        "runtime_profile",
+        "invocation_kind",
+        "capabilities"
+      ],
+      "unevaluatedProperties": false
+    }
+  }
+}

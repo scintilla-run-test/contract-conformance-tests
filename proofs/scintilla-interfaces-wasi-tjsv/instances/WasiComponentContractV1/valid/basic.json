@@ -1,0 +1,12 @@
+{
+  "schema_version": "scintilla.wasi-component/v1",
+  "component_id": "example.echo",
+  "wit_package": "scintilla:example@1.0.0",
+  "wit_world": "handler",
+  "runtime_profile": "wasi_0_3",
+  "invocation_kind": "unary",
+  "capabilities": [
+    { "kind": "clock", "required": true },
+    { "kind": "outbound_network", "required": false, "resource_id": "api.example.invalid" }
+  ]
+}
