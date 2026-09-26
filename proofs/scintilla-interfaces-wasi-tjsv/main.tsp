@@ -1,5 +1,3 @@
-// Exact vendored copy from scintilla-run/scintilla-interfaces@5ed51e9e6d81e12df620898e5f9fc1b59890ea4f.
-// Source Git blob: 06411f9e634a273a3b7b466d27a866b98512bba1.
 // Independent TypeSpec peer authority for Scintilla WASI component admission.
 // Generated JSON Schema is comparison evidence only; it is never the authored JSON Schema authority.
 import "@typespec/json-schema";
