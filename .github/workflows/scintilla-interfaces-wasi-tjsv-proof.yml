@@ -1,0 +1,65 @@
+name: Scintilla WASI TJSV exact-source proof
+
+on:
+  pull_request:
+    paths:
+      - "proofs/scintilla-interfaces-wasi-tjsv/**"
+      - ".github/workflows/scintilla-interfaces-wasi-tjsv-proof.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  certify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out carrier exact head
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Verify vendored source Git blob identities
+        shell: bash
+        working-directory: proofs/scintilla-interfaces-wasi-tjsv
+        run: |
+          set -euo pipefail
+          source SOURCE.lock
+          test "$source_repository" = "scintilla-run/scintilla-interfaces"
+          test "$source_commit" = "5ed51e9e6d81e12df620898e5f9fc1b59890ea4f"
+          test "$validator_commit" = "813d5f021e02574f529a9553b670719f8f10d02c"
+          test "$contract_id" = "scintilla.wasi-component/v1"
+          test "$(git hash-object main.tsp)" = "$typespec_blob"
+          test "$(git hash-object authored.schema.json)" = "$json_schema_blob"
+          test "$(git hash-object instances/WasiComponentContractV1/valid/basic.json)" = "$valid_fixture_blob"
+          test "$(git hash-object instances/WasiComponentContractV1/invalid/process-spawn.json)" = "$invalid_fixture_blob"
+      - name: Compare exact Scintilla WASI peer authorities
+        uses: ORESoftware/typespec-json-schema-validator@813d5f021e02574f529a9553b670719f8f10d02c
+        with:
+          typespec: proofs/scintilla-interfaces-wasi-tjsv/main.tsp
+          schema: proofs/scintilla-interfaces-wasi-tjsv/authored.schema.json
+          instances: proofs/scintilla-interfaces-wasi-tjsv/instances
+          report: .typespec-json-schema-validator/scintilla-wasi/report.json
+          sarif: .typespec-json-schema-validator/scintilla-wasi/report.sarif
+          contract_ir: .typespec-json-schema-validator/scintilla-wasi/contract-ir.json
+          output_dir: .typespec-json-schema-validator/scintilla-wasi/generated
+          max_probes: "96"
+      - name: Verify complete admitted declaration scope
+        uses: ORESoftware/typespec-json-schema-validator/actions/verify-contract-ir@813d5f021e02574f529a9553b670719f8f10d02c
+        with:
+          contract_ir: .typespec-json-schema-validator/scintilla-wasi/contract-ir.json
+          report: .typespec-json-schema-validator/scintilla-wasi/report.json
+          typespec: proofs/scintilla-interfaces-wasi-tjsv/main.tsp
+          schema: proofs/scintilla-interfaces-wasi-tjsv/authored.schema.json
+          generated_schema: .typespec-json-schema-validator/scintilla-wasi/generated/typespec.generated.schema.json
+          expected_declarations: '["ScintillaWasiComponent.WasiRuntimeProfile","ScintillaWasiComponent.InvocationKind","ScintillaWasiComponent.CapabilityKind","ScintillaWasiComponent.CapabilityRequirement","ScintillaWasiComponent.WasiComponentContractV1"]'
+          verification: .typespec-json-schema-validator/scintilla-wasi/consumer-verification.json
+      - name: Retain exact-head proof evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: scintilla-wasi-tjsv-${{ github.run_id }}
+          path: .typespec-json-schema-validator/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 30
