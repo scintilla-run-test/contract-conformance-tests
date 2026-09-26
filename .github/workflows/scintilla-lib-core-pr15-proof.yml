@@ -1,0 +1,26 @@
+name: scintilla lib-core candidate proof
+
+on:
+  pull_request:
+    paths:
+      - "proofs/scintilla-lib-core-pr15/**"
+      - ".github/workflows/scintilla-lib-core-pr15-proof.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  certify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4
+        with:
+          components: rustfmt, clippy
+      - name: Test candidate contract source
+        working-directory: proofs/scintilla-lib-core-pr15
+        run: cargo test --all-targets
