@@ -1,0 +1,356 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://scintilla.run/contracts/module-descriptor.schema.json",
+  "title": "Scintilla Module Descriptor",
+  "$ref": "ModuleDescriptor.json",
+  "$defs": {
+    "ModuleKind": {
+      "$id": "ModuleKind.json",
+      "type": "string",
+      "enum": [
+        "lambda",
+        "http",
+        "rpc",
+        "worker",
+        "actor",
+        "container"
+      ]
+    },
+    "InvocationMode": {
+      "$id": "InvocationMode.json",
+      "type": "string",
+      "enum": [
+        "request_response",
+        "stream",
+        "event",
+        "long_lived"
+      ]
+    },
+    "ConcurrencyModel": {
+      "$id": "ConcurrencyModel.json",
+      "type": "string",
+      "enum": [
+        "concurrent",
+        "serial",
+        "keyed_serial"
+      ]
+    },
+    "CancellationModel": {
+      "$id": "CancellationModel.json",
+      "type": "string",
+      "enum": [
+        "deadline",
+        "cooperative",
+        "process_termination"
+      ]
+    },
+    "IsolationRequirement": {
+      "$id": "IsolationRequirement.json",
+      "type": "string",
+      "enum": [
+        "runtime_default",
+        "process",
+        "container",
+        "micro_vm"
+      ]
+    },
+    "Capability": {
+      "$id": "Capability.json",
+      "type": "string",
+      "enum": [
+        "clock",
+        "random",
+        "network_outbound",
+        "network_listen",
+        "filesystem_read",
+        "filesystem_write",
+        "process_spawn",
+        "env_read",
+        "secrets_read",
+        "database_read",
+        "database_write",
+        "key_value_read",
+        "key_value_write",
+        "queue_publish",
+        "queue_consume",
+        "object_storage_read",
+        "object_storage_write"
+      ]
+    },
+    "ExecutionProfile": {
+      "$id": "ExecutionProfile.json",
+      "type": "object",
+      "properties": {
+        "invocation": {
+          "$ref": "InvocationMode.json"
+        },
+        "concurrency": {
+          "$ref": "ConcurrencyModel.json"
+        },
+        "cancellation": {
+          "$ref": "CancellationModel.json"
+        },
+        "isolation": {
+          "$ref": "IsolationRequirement.json"
+        },
+        "default_timeout_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_concurrency": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "minimum": 1
+        },
+        "idempotent": {
+          "type": "boolean"
+        },
+        "retry_safe": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "invocation",
+        "concurrency",
+        "cancellation",
+        "isolation",
+        "default_timeout_ms",
+        "idempotent",
+        "retry_safe"
+      ],
+      "unevaluatedProperties": false
+    },
+    "ModuleDescriptorBase": {
+      "$id": "ModuleDescriptorBase.json",
+      "type": "object",
+      "properties": {
+        "contract_version": {
+          "type": "string",
+          "const": "scintilla-module-contract-v1"
+        },
+        "semantics_version": {
+          "anyOf": [
+            {
+              "type": "string",
+              "const": "scintilla.module-semantics/v2"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.-]+$"
+        },
+        "entrypoint": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^\\S+$"
+        },
+        "execution": {
+          "$ref": "ExecutionProfile.json"
+        },
+        "capabilities": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "Capability.json"
+          }
+        },
+        "context_abi": {
+          "anyOf": [
+            {
+              "type": "string",
+              "const": "scintilla.context/v1"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "contract_version",
+        "name",
+        "entrypoint"
+      ]
+    },
+    "LambdaModuleDescriptor": {
+      "$id": "LambdaModuleDescriptor.json",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "const": "lambda"
+        },
+        "interface": {
+          "type": "string",
+          "const": "scintilla.lambda.v1"
+        }
+      },
+      "required": [
+        "kind",
+        "interface"
+      ],
+      "allOf": [
+        {
+          "$ref": "ModuleDescriptorBase.json"
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "HttpModuleDescriptor": {
+      "$id": "HttpModuleDescriptor.json",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "const": "http"
+        },
+        "interface": {
+          "type": "string",
+          "const": "scintilla.http.v1"
+        }
+      },
+      "required": [
+        "kind",
+        "interface"
+      ],
+      "allOf": [
+        {
+          "$ref": "ModuleDescriptorBase.json"
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "RpcModuleDescriptor": {
+      "$id": "RpcModuleDescriptor.json",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "const": "rpc"
+        },
+        "interface": {
+          "type": "string",
+          "const": "scintilla.rpc.v1"
+        }
+      },
+      "required": [
+        "kind",
+        "interface"
+      ],
+      "allOf": [
+        {
+          "$ref": "ModuleDescriptorBase.json"
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "WorkerModuleDescriptor": {
+      "$id": "WorkerModuleDescriptor.json",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "const": "worker"
+        },
+        "interface": {
+          "type": "string",
+          "const": "scintilla.worker.v1"
+        }
+      },
+      "required": [
+        "kind",
+        "interface"
+      ],
+      "allOf": [
+        {
+          "$ref": "ModuleDescriptorBase.json"
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "ActorModuleDescriptor": {
+      "$id": "ActorModuleDescriptor.json",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "const": "actor"
+        },
+        "interface": {
+          "type": "string",
+          "const": "scintilla.actor.v1"
+        }
+      },
+      "required": [
+        "kind",
+        "interface"
+      ],
+      "allOf": [
+        {
+          "$ref": "ModuleDescriptorBase.json"
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "ContainerModuleDescriptor": {
+      "$id": "ContainerModuleDescriptor.json",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "const": "container"
+        },
+        "interface": {
+          "type": "string",
+          "const": "scintilla.container.v1"
+        }
+      },
+      "required": [
+        "kind",
+        "interface"
+      ],
+      "allOf": [
+        {
+          "$ref": "ModuleDescriptorBase.json"
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "ModuleDescriptor": {
+      "$id": "ModuleDescriptor.json",
+      "anyOf": [
+        {
+          "$ref": "LambdaModuleDescriptor.json"
+        },
+        {
+          "$ref": "HttpModuleDescriptor.json"
+        },
+        {
+          "$ref": "RpcModuleDescriptor.json"
+        },
+        {
+          "$ref": "WorkerModuleDescriptor.json"
+        },
+        {
+          "$ref": "ActorModuleDescriptor.json"
+        },
+        {
+          "$ref": "ContainerModuleDescriptor.json"
+        }
+      ]
+    }
+  }
+}
