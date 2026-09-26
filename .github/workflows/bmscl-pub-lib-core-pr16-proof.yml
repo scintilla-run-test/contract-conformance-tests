@@ -1,0 +1,35 @@
+name: BeamScale pub-lib-core PR16 exact-head proof
+
+on:
+  pull_request:
+    paths:
+      - "proofs/bmscl-pub-lib-core-pr16/**"
+      - ".github/workflows/bmscl-pub-lib-core-pr16-proof.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  certify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: erlef/setup-beam@54075bcc5e249e4758d363f27d099f55d843f124
+        with:
+          otp-version: "29.1.1"
+          gleam-version: "1.18.1"
+          version-type: strict
+      - name: Verify pinned source identity
+        run: |
+          grep -qx 'source_head_sha=23b79ac4e048f1b6f75e62fd40a0537113c301f6' proofs/bmscl-pub-lib-core-pr16/SOURCE.lock
+          grep -qx 'source_http_context_blob_sha=3aac0949bbf26cec1ae659deee9dc8cc6bdc0144' proofs/bmscl-pub-lib-core-pr16/SOURCE.lock
+      - name: Compile candidate and user context adapter
+        working-directory: proofs/bmscl-pub-lib-core-pr16
+        run: |
+          gleam format --check src
+          gleam check --target erlang
+          gleam build --target erlang

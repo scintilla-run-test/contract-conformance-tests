@@ -1,0 +1,4 @@
+name = "bmscl_pub_lib_core_pr16_proof"
+version = "0.0.0"
+target = "erlang"
+gleam = ">= 1.18.0"
