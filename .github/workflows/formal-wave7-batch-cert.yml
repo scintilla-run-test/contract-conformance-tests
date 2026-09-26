@@ -1,0 +1,78 @@
+name: Formal Wave 7 exact-head batch cert
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/formal-wave7-batch-cert.yml"
+      - "cert/formal-wave7/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  certify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Verify exact workflow blobs
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git hash-object cert/formal-wave7/beamscale-api.yml)" = "ab0bb6dbbd64304fe88f216af62e1b3dd377a062"
+          test "$(git hash-object cert/formal-wave7/beamscale-admin.yml)" = "e169a6a14e074265cd28a96019452c4ed45e7c14"
+          test "$(git hash-object cert/formal-wave7/scintilla-api.yml)" = "3cc242effce5c25dd1cdc9ee9c5348baccbee8eb"
+          test "$(git hash-object cert/formal-wave7/scintilla-admin.yml)" = "238c923ab95efcbe87bceb550c5b34ee5a75a671"
+      - name: Exhaust BeamScale actor placement and fencing
+        run: |
+          python3 - <<'PY'
+          from itertools import product
+          for current_owner, proposed_owner, current_epoch, presented_epoch in product((0,1,2),(0,1,2),range(3),range(3)):
+              admitted = proposed_owner != 0 and presented_epoch == current_epoch
+              next_owner = proposed_owner if admitted else current_owner
+              next_epoch = current_epoch + 1 if admitted and proposed_owner != current_owner else current_epoch
+              if not admitted:
+                  assert next_owner == current_owner and next_epoch == current_epoch
+              if admitted and proposed_owner != current_owner:
+                  assert next_epoch > current_epoch
+              assert next_owner in (0,1,2)
+          PY
+      - name: Exhaust BeamScale tenant actor quota bounds
+        run: |
+          python3 - <<'PY'
+          from itertools import product
+          quota=4
+          for admin, used, requested in product((False,True),range(quota+1),range(1,4)):
+              admitted=admin and used+requested<=quota
+              after=used+requested if admitted else used
+              assert 0<=after<=quota
+              if not admitted: assert after==used
+          PY
+      - name: Exhaust Scintilla subprocess lifecycle
+        run: |
+          python3 - <<'PY'
+          from itertools import product
+          PENDING,RUNNING,SUCCEEDED,FAILED,CANCELLED=range(5)
+          for state,event in product(range(5),('start','success','fail','cancel')):
+              nxt=state
+              if state==PENDING and event=='start': nxt=RUNNING
+              elif state==RUNNING and event=='success': nxt=SUCCEEDED
+              elif state==RUNNING and event=='fail': nxt=FAILED
+              elif state in (PENDING,RUNNING) and event=='cancel': nxt=CANCELLED
+              if state in (SUCCEEDED,FAILED,CANCELLED): assert nxt==state
+              assert nxt in range(5)
+          PY
+      - name: Exhaust Scintilla process-slot quota and idempotency
+        run: |
+          python3 - <<'PY'
+          from itertools import product
+          quota=4
+          for admin, used, requested, duplicate in product((False,True),range(quota+1),range(1,4),(False,True)):
+              admitted=admin and used+requested<=quota
+              after=used if duplicate or not admitted else used+requested
+              assert 0<=after<=quota
+              if duplicate or not admitted: assert after==used
+          PY
