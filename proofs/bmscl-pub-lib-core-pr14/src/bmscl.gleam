@@ -155,12 +155,9 @@ pub fn module_with_context(
   context_builder: fn(Context) -> user_context,
   entrypoint: fn(input, user_context) -> output,
 ) -> Module(input, output) {
-  module(
-    kind,
-    fn(input, platform_context) {
-      entrypoint(input, context_builder(platform_context))
-    },
-  )
+  module(kind, fn(input, platform_context) {
+    entrypoint(input, context_builder(platform_context))
+  })
 }
 
 /// Context-adapting variant for modules that also need explicit execution
@@ -172,14 +169,9 @@ pub fn module_with_policy_and_context(
   context_builder: fn(Context) -> user_context,
   entrypoint: fn(input, user_context) -> output,
 ) -> Module(input, output) {
-  module_with_policy(
-    kind,
-    policy,
-    capabilities,
-    fn(input, platform_context) {
-      entrypoint(input, context_builder(platform_context))
-    },
-  )
+  module_with_policy(kind, policy, capabilities, fn(input, platform_context) {
+    entrypoint(input, context_builder(platform_context))
+  })
 }
 
 /// Wrap the standard BeamScale HTTP/lambda handler contract.
