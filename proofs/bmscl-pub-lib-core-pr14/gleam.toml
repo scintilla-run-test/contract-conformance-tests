@@ -1,0 +1,4 @@
+name = "bmscl_sdk"
+version = "0.1.0"
+target = "erlang"
+gleam = ">= 1.18.0"
