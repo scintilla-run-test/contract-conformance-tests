@@ -1,0 +1,24 @@
+name: gleam formatter probe
+on:
+  pull_request:
+    paths:
+      - "tmp/gleam-format-pr12/**"
+      - ".github/workflows/gleam-format-pr12.yml"
+permissions:
+  contents: read
+jobs:
+  format:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: erlef/setup-beam@8736e9244717f9207464c14c6051b71d22253f60
+        with:
+          otp-version: "29"
+          gleam-version: "1.16.0"
+      - run: |
+          gleam format tmp/gleam-format-pr12/scintilla_lambda_pub_core_test.gleam
+          echo '---FORMATTED-BEGIN---'
+          cat tmp/gleam-format-pr12/scintilla_lambda_pub_core_test.gleam
+          echo '---FORMATTED-END---'
