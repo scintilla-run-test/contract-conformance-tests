@@ -1,0 +1,37 @@
+{
+  "schema": "scintilla.external-contract-admission/v1",
+  "consumer_repository": "scintilla-run/gleam-lambda-runner",
+  "contract": {
+    "id": "scintilla.wasi-component/v1",
+    "authority_repository": "scintilla-run/scintilla-interfaces",
+    "authority_commit": "5ed51e9e6d81e12df620898e5f9fc1b59890ea4f",
+    "typespec_blob": "06411f9e634a273a3b7b466d27a866b98512bba1",
+    "json_schema_blob": "e271bcc821aff920277f01db80e33f9c106a7d50",
+    "authority_precedence": "none"
+  },
+  "validator": {
+    "repository": "ORESoftware/typespec-json-schema-validator",
+    "commit": "813d5f021e02574f529a9553b670719f8f10d02c",
+    "contract_ir_schema": "ores.typespec-json-schema-validator.contract-ir/v1"
+  },
+  "admitted_evidence": {
+    "status": "passed",
+    "zero_unexplained_findings": true,
+    "contract_ir_id": "3c689c82c641bcfad401c8b7be7f1f2a8736364a83e4b49134e1955caa776af0",
+    "parity_receipt_digest": "abe270fb593b5346a1505dd9c7be59b41c6a83504fb74da37fbcd745f0175185",
+    "consumer_verification_id": "135169fc82de78823b935eab6f890279601de5e0425eb4d2933c141ce0bd38f3",
+    "proof_repository": "scintilla-run-test/contract-conformance-tests",
+    "proof_pr": 14,
+    "proof_head_commit": "fbd42bc119126621b15d085de8fb609f49005ad2",
+    "proof_merge_commit": "48740d0926f1a6ed91672eec54e95a02924f88a9",
+    "workflow_run_id": 36258273449,
+    "artifact_digest": "sha256:a8e5e10997b34c7360b41459e52913971d7a75d5c94bd1fa498d7122d5816982"
+  },
+  "consumer_policy": {
+    "allow_local_reauthoring": false,
+    "allow_generated_projection_as_authority": false,
+    "require_exact_authority_commit": true,
+    "require_admissible_contract_ir": true,
+    "fail_closed_on_evidence_mismatch": true
+  }
+}
