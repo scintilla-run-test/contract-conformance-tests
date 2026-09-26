@@ -1,0 +1,5 @@
+source_repo=scintilla-run/scintilla-lib-core
+source_pr=16
+source_head_sha=45f276723828a22d735d27ee70f5941c07af19a0
+source_module_contract_blob_sha=33f37f057f59d6ad0967ed1d3f50adaceaf65b9a
+expected_context_abi=scintilla.run/context/v1
