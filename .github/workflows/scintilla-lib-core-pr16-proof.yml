@@ -1,0 +1,33 @@
+name: Scintilla lib-core PR16 exact-head proof
+
+on:
+  pull_request:
+    paths:
+      - "proofs/scintilla-lib-core-pr16/**"
+      - ".github/workflows/scintilla-lib-core-pr16-proof.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  certify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4
+        with:
+          components: rustfmt, clippy
+      - name: Verify pinned source identity
+        run: |
+          grep -qx 'source_head_sha=45f276723828a22d735d27ee70f5941c07af19a0' proofs/scintilla-lib-core-pr16/SOURCE.lock
+          grep -qx 'expected_context_abi=scintilla.run/context/v1' proofs/scintilla-lib-core-pr16/SOURCE.lock
+      - name: Test exact candidate contract source
+        working-directory: proofs/scintilla-lib-core-pr16
+        run: |
+          cargo fmt --check
+          cargo clippy --all-targets -- -D warnings
+          cargo test --all-targets
