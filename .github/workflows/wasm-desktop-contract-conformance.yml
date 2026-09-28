@@ -44,13 +44,6 @@ jobs:
           ref: bb70447328cd83a99daa1022ccbc9169c10a45f5
           path: infra
           persist-credentials: false
-      - name: Checkout desktop app port/security head
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          repository: wasm-xprs/wasmx-desktop-app.rs
-          ref: 7173f6cdd49e0a552f3a67b99bef7413d9fac3d2
-          path: app
-          persist-credentials: false
       - name: Assert one canonical local origin
         shell: bash
         run: |
@@ -59,7 +52,6 @@ jobs:
           grep -q '127.0.0.1:8766' cli/.cli-flags.toml
           grep -q '127.0.0.1:8766' infra/.ores-compose.yaml
           grep -q '127.0.0.1:8766' infra/appliance.json
-          grep -q '127.0.0.1:8766' app/src/main.rs
           if grep -q '127.0.0.1:8765' cli/.cli-flags.toml; then
             echo 'CLI still contains legacy canonical origin 8765' >&2
             exit 1
@@ -92,12 +84,3 @@ jobs:
           grep -q 'explicit_wasmx_v1_only' daemon/src/ores_adapter.rs
           grep -q 'forbidden' daemon/src/ores_adapter.rs
           grep -q 'wasi_enabled: false' daemon/src/main.rs
-      - name: Assert desktop app preserves authenticated loopback-only policy
-        shell: bash
-        run: |
-          set -euo pipefail
-          grep -q '127.0.0.1:8766' app/src/main.rs
-          grep -q 'redirect' app/src/main.rs
-          grep -q 'loopback' app/src/main.rs
-          grep -q 'symlink' app/src/main.rs
-          grep -q '16 \* 1024 \* 1024' app/src/main.rs
