@@ -1,0 +1,62 @@
+name: ORES WASM producer contract proof
+
+on:
+  push:
+    branches:
+      - probe/ores-wasm-producer-20260928
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  producer-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Checkout exact ORES CLI main
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: ores-stack/ores-stack-cli
+          ref: 701893b990fdd6127acf74d1784dfa7cba9b52a4
+          path: ores
+          persist-credentials: false
+      - name: Checkout exact merged wasm-xprs CLI main
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: wasm-xprs/wasmx-desktop-cli
+          ref: 265c4768f22ea78d020f8eebcdba4795654d652f
+          path: wasmx-cli
+          persist-credentials: false
+      - name: Assert producer-consumer surface agrees
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C ores rev-parse HEAD)" = 701893b990fdd6127acf74d1784dfa7cba9b52a4
+          test "$(git -C wasmx-cli rev-parse HEAD)" = 265c4768f22ea78d020f8eebcdba4795654d652f
+          grep -q 'ores.lambda.wasm-artifact.receipt/v1' ores/crates/ores-stack-cli/src/lambda_wasm_cli.rs
+          grep -q 'target_triple: "wasm32-unknown-unknown"' ores/crates/ores-stack-cli/src/lambda_wasm_cli.rs
+          grep -q 'runtime_cli: "wasmx-desktop-cli"' ores/crates/ores-stack-cli/src/lambda_wasm_cli.rs
+          grep -q '.arg("--ores-adapter")' ores/crates/ores-stack-cli/src/lambda_wasm_cli.rs
+          grep -q '.arg("--ores-receipt")' ores/crates/ores-stack-cli/src/lambda_wasm_cli.rs
+          grep -q 'ores.lambda.wasm-artifact.receipt/v1' wasmx-cli/src/main.rs
+          grep -q 'WASMX_DESKTOP_ORES_RECEIPT' wasmx-cli/src/main.rs
+          grep -q 'ores_adapter_raw_base64' wasmx-cli/src/main.rs
+          grep -q 'ores_receipt_raw_base64' wasmx-cli/src/main.rs
+          grep -q 'validate_receipt_ack' wasmx-cli/src/main.rs
+      - name: Install ORES MSRV
+        uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4
+        with:
+          toolchain: 1.88.0
+          components: clippy,rustfmt
+      - name: Run ORES lambda producer tests at declared MSRV
+        shell: bash
+        working-directory: ores
+        run: |
+          set -euo pipefail
+          cargo fmt -p ores-stack-cli -- --check
+          cargo test -p ores-stack-cli lambda_wasm_cli -- --nocapture
+          cargo test -p ores-stack-cli provider_profiles_keep_distinct_wasm_targets -- --exact --nocapture || \
+            cargo test -p ores-stack-cli provider_profiles_keep_distinct_wasm_targets -- --nocapture
+          cargo test -p ores-stack-cli normalized_runtime_ack_is_bound_to_exact_request -- --nocapture
+          cargo clippy -p ores-stack-cli --all-targets -- -D warnings -A clippy::needless-return
