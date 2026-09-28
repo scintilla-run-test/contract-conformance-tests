@@ -1,0 +1,103 @@
+name: WASM desktop cross-repo contract conformance
+
+on:
+  push:
+    branches:
+      - probe/wasm-desktop-contracts-20260928
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  wasm-xprs-contracts:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - name: Checkout merged daemon
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: wasm-xprs/wasmx-desktop-daemon
+          ref: 9906d0bdfc4fe1760fca75569670f91e793e1c85
+          path: daemon
+          persist-credentials: false
+      - name: Checkout CLI receipt head
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: wasm-xprs/wasmx-desktop-cli
+          ref: 748de62e320b64b9659848db990d52a9420f9194
+          path: cli
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Compose CLI port change
+        shell: bash
+        run: |
+          set -euo pipefail
+          git -C cli fetch --no-tags origin \
+            refs/heads/alexanderdmills/den-3045-unique-desktop-port:refs/remotes/origin/port-proof
+          git -C cli -c user.name='contract-proof' -c user.email='proof@example.invalid' \
+            merge --no-commit --no-ff refs/remotes/origin/port-proof
+      - name: Checkout infra port head
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: wasm-xprs/wasmx-desktop-infra
+          ref: bb70447328cd83a99daa1022ccbc9169c10a45f5
+          path: infra
+          persist-credentials: false
+      - name: Checkout desktop app port/security head
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: wasm-xprs/wasmx-desktop-app.rs
+          ref: 7173f6cdd49e0a552f3a67b99bef7413d9fac3d2
+          path: app
+          persist-credentials: false
+      - name: Assert one canonical local origin
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'const DEFAULT_ADDR: &str = "127.0.0.1:8766"' daemon/src/main.rs
+          grep -q '127.0.0.1:8766' cli/.cli-flags.toml
+          grep -q '127.0.0.1:8766' infra/.ores-compose.yaml
+          grep -q '127.0.0.1:8766' infra/appliance.json
+          grep -q '127.0.0.1:8766' app/src/main.rs
+          if grep -q '127.0.0.1:8765' cli/.cli-flags.toml; then
+            echo 'CLI still contains legacy canonical origin 8765' >&2
+            exit 1
+          fi
+          if grep -q '127.0.0.1:8765' infra/.ores-compose.yaml infra/appliance.json; then
+            echo 'infra still contains legacy canonical origin 8765' >&2
+            exit 1
+          fi
+      - name: Assert receipt transport is symmetric
+        shell: bash
+        run: |
+          set -euo pipefail
+          for token in ores_adapter_raw_base64 ores_receipt_raw_base64; do
+            grep -q "$token" cli/src/main.rs
+            grep -q "$token" daemon/src/main.rs
+          done
+          grep -q 'validate_receipt_ack' cli/src/main.rs
+          grep -q 'ores_receipt_verified' cli/src/main.rs
+          grep -q 'ores_receipt_verified' daemon/src/main.rs
+          grep -q 'ORES receipt evidence requires ores_adapter plus exact raw adapter and receipt bytes' daemon/src/main.rs
+      - name: Assert Wasmtime isolation vocabulary remains closed
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'wasm32-unknown-unknown' daemon/src/ores_adapter.rs
+          grep -q 'wasmx-v1' daemon/src/ores_adapter.rs
+          grep -q 'wasmtime_store_instance' daemon/src/ores_adapter.rs
+          grep -q 'fresh_store_and_instance_per_invocation' daemon/src/ores_adapter.rs
+          grep -q 'compiled_module_allowed' daemon/src/ores_adapter.rs
+          grep -q 'explicit_wasmx_v1_only' daemon/src/ores_adapter.rs
+          grep -q 'forbidden' daemon/src/ores_adapter.rs
+          grep -q 'wasi_enabled: false' daemon/src/main.rs
+      - name: Assert desktop app preserves authenticated loopback-only policy
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q '127.0.0.1:8766' app/src/main.rs
+          grep -q 'redirect' app/src/main.rs
+          grep -q 'loopback' app/src/main.rs
+          grep -q 'symlink' app/src/main.rs
+          grep -q '16 \* 1024 \* 1024' app/src/main.rs
