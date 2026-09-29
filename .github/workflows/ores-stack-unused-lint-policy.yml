@@ -1,0 +1,115 @@
+name: ores-stack unused lint policy
+
+on:
+  push:
+    branches:
+      - proof/ores-stack-unused-lint-policy-20260928
+  workflow_dispatch: {}
+
+jobs:
+  rust-1-88-policy:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Install Rust 1.88
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.88.0
+          components: clippy
+
+      - name: Materialize policy probe
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p probe/.cargo probe/src
+          cat > probe/Cargo.toml <<'EOF'
+          [package]
+          name = "ores-stack-unused-lint-policy-probe"
+          version = "0.0.0"
+          edition = "2024"
+          rust-version = "1.88"
+
+          [lints.rust]
+          unsafe_code = "forbid"
+          dead_code = "allow"
+          unused_imports = "allow"
+          unused_variables = "allow"
+          unused_mut = "allow"
+          unused_assignments = "allow"
+          EOF
+          cat > probe/.cargo/config.toml <<'EOF'
+          [alias]
+          strict-unused = [
+            "clippy",
+            "--locked",
+            "--all-targets",
+            "--all-features",
+            "--",
+            "-Ddead_code",
+            "-Dunused_imports",
+            "-Dunused_variables",
+            "-Dunused_mut",
+            "-Dunused_assignments",
+          ]
+          EOF
+          cat > probe/src/main.rs <<'EOF'
+          use std::collections::BTreeMap;
+
+          fn intentionally_retained() {}
+
+          fn main() {
+              let mut intentionally_unused = 1_u8;
+              intentionally_unused = 2;
+          }
+          EOF
+          (cd probe && cargo generate-lockfile)
+
+      - name: Default build is quiet for selected unused categories
+        shell: bash
+        run: |
+          set -euo pipefail
+          output="$(cd probe && cargo check --locked 2>&1)"
+          printf '%s\n' "$output"
+          if printf '%s\n' "$output" | grep -E 'unused import|never used|unused variable|does not need to be mutable|value assigned .* is never read'; then
+            echo 'selected unused lint leaked into default build' >&2
+            exit 1
+          fi
+
+      - name: Strict alias re-enables selected unused categories
+        shell: bash
+        run: |
+          set -euo pipefail
+          set +e
+          output="$(cd probe && cargo strict-unused 2>&1)"
+          status=$?
+          set -e
+          printf '%s\n' "$output"
+          if [[ $status -eq 0 ]]; then
+            echo 'cargo strict-unused unexpectedly passed retained unused debt' >&2
+            exit 1
+          fi
+          printf '%s\n' "$output" | grep -E 'unused import|never used|unused variable|does not need to be mutable|value assigned .* is never read'
+
+      - name: Correctness lint remains live
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > probe/src/main.rs <<'EOF'
+          #[must_use]
+          fn important_result() -> u8 {
+              return 1;
+          }
+
+          fn main() {
+              important_result();
+          }
+          EOF
+          set +e
+          output="$(cd probe && RUSTFLAGS='-Dwarnings' cargo check --locked 2>&1)"
+          status=$?
+          set -e
+          printf '%s\n' "$output"
+          if [[ $status -eq 0 ]]; then
+            echo 'unused_must_use was incorrectly suppressed' >&2
+            exit 1
+          fi
+          printf '%s\n' "$output" | grep -E 'unused return value|unused_must_use|must be used'
