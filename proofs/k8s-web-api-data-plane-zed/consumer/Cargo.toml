@@ -1,0 +1,9 @@
+[package]
+name = "k8s-web-api-data-plane-consumer-canary"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.88"
+publish = false
+
+[dependencies]
+k8s-web-api-data-plane = { path = ".vendor/.zed/oresoftware/k8s-libs-and-shared-defs/web-api-data-plane", version = "0.1.0" }

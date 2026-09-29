@@ -1,0 +1,6 @@
+source_repo=ORESoftware/k8s-libs-and-shared-defs
+source_pr=128
+source_head_sha=d91e038d7f428b22648f9a4ef2e0bbf87eec6517
+target_name=k8s-web-api-data-plane
+target_dir=web-api-data-plane
+consumer_path=.vendor/.zed/oresoftware/k8s-libs-and-shared-defs/web-api-data-plane
