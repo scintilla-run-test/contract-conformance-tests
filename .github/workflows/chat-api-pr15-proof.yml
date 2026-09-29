@@ -1,0 +1,30 @@
+name: Chat API PR 15 media proof
+
+on:
+  push:
+    branches:
+      - proof/chat-api-pr15-eea7ce1
+
+permissions:
+  contents: read
+
+jobs:
+  rust:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: Verify source pin
+        run: grep -F 'eea7ce1fc26a3b4ee99a0576824f1724618a664e' proofs/chat-api-pr15/src/lib.rs
+      - name: Format
+        working-directory: proofs/chat-api-pr15
+        run: cargo fmt --all -- --check
+      - name: Test
+        working-directory: proofs/chat-api-pr15
+        run: cargo test
+      - name: Clippy
+        working-directory: proofs/chat-api-pr15
+        run: cargo clippy --all-targets -- -D warnings
