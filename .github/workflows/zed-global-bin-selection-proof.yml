@@ -22,7 +22,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: zed-pkg/zed-cli
-          ref: cdc94c34fd91d34d48907807f395d834948b7904
+          ref: 08a49d99dbfaaa41d7506ad64873b3509836d3fe
           path: zed-cli
           persist-credentials: false
 
@@ -33,7 +33,7 @@ jobs:
         working-directory: zed-cli
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = "cdc94c34fd91d34d48907807f395d834948b7904"
+          test "$(git rev-parse HEAD)" = "08a49d99dbfaaa41d7506ad64873b3509836d3fe"
 
       - name: Formatting
         working-directory: zed-cli
