@@ -71,3 +71,31 @@ jobs:
       - name: Test
         working-directory: proofs/forms-clients-pr9-dart
         run: dart --enable-asserts run bin/proof.dart
+
+  wasm:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+          components: rustfmt, clippy
+      - name: Verify source pin and metadata-only raw boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -F 'c75075a7eb2086a17ef717310a24f72b288f5b99' proofs/forms-clients-pr9-wasm/src/lib.rs
+          ! grep -F 'raw_binary_post' proofs/forms-clients-pr9-wasm/src/lib.rs
+      - name: Format
+        working-directory: proofs/forms-clients-pr9-wasm
+        run: cargo fmt --all -- --check
+      - name: Native tests
+        working-directory: proofs/forms-clients-pr9-wasm
+        run: cargo test
+      - name: WASM compile
+        working-directory: proofs/forms-clients-pr9-wasm
+        run: cargo check --target wasm32-unknown-unknown
+      - name: Clippy
+        working-directory: proofs/forms-clients-pr9-wasm
+        run: cargo clippy --all-targets -- -D warnings
