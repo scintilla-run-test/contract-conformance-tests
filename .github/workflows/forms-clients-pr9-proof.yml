@@ -1,4 +1,4 @@
-name: Forms clients PR 9 Rust proof
+name: Forms clients PR 9 proof
 
 on:
   push:
@@ -28,3 +28,27 @@ jobs:
       - name: Clippy
         working-directory: proofs/forms-clients-pr9-rust
         run: cargo clippy --all-targets -- -D warnings
+
+  typescript:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify source pin and no generic raw request helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -F 'c75075a7eb2086a17ef717310a24f72b288f5b99' proofs/forms-clients-pr9-ts/wire.ts
+          ! grep -F 'rawBinaryRequest' proofs/forms-clients-pr9-ts/wire.ts
+      - name: Install
+        working-directory: proofs/forms-clients-pr9-ts
+        run: npm install --no-audit --no-fund
+      - name: Typecheck
+        working-directory: proofs/forms-clients-pr9-ts
+        run: npm run check
+      - name: Test
+        working-directory: proofs/forms-clients-pr9-ts
+        run: npm test
