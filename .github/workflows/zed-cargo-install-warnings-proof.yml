@@ -1,0 +1,74 @@
+name: zed cargo-install warnings proof
+
+on:
+  push:
+    branches:
+      - proof/zed-cargo-install-warnings-f7b5653
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  exact-head:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      TARGET_SHA: f7b56532d5dc245f416ea44e87ee81cb217f23a7
+      CARGO_NET_GIT_FETCH_WITH_CLI: "true"
+    steps:
+      - name: Checkout exact zed-cli candidate
+        uses: actions/checkout@v4
+        with:
+          repository: zed-pkg/zed-cli
+          ref: ${{ env.TARGET_SHA }}
+          path: zed-cli
+          fetch-depth: 1
+
+      - name: Install pinned Rust toolchain
+        shell: bash
+        run: |
+          rustup toolchain install 1.88.0 --profile minimal --component rustfmt,clippy
+
+      - name: Verify immutable source identity
+        shell: bash
+        working-directory: zed-cli
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$TARGET_SHA"
+
+      - name: Format
+        shell: bash
+        working-directory: zed-cli
+        run: cargo +1.88.0 fmt --all -- --check
+
+      - name: Compile library with warnings denied
+        shell: bash
+        working-directory: zed-cli
+        run: cargo +1.88.0 rustc --locked --lib -- -Dwarnings
+
+      - name: Compile zed binary with warnings denied
+        shell: bash
+        working-directory: zed-cli
+        run: cargo +1.88.0 rustc --locked --bin zed -- -Dwarnings
+
+      - name: Clippy exact candidate
+        shell: bash
+        working-directory: zed-cli
+        run: cargo +1.88.0 clippy --locked --all-targets --all-features --no-deps -- -D warnings
+
+      - name: Cargo-install zed from the exact candidate
+        shell: bash
+        working-directory: zed-cli
+        run: |
+          set -euo pipefail
+          root="$RUNNER_TEMP/zed-root"
+          cargo +1.88.0 install --locked --force --path . --bin zed --root "$root" 2>&1 | tee "$RUNNER_TEMP/cargo-install.log"
+          if grep -E '^warning:' "$RUNNER_TEMP/cargo-install.log"; then
+            echo "cargo install emitted warnings" >&2
+            exit 1
+          fi
+          "$root/bin/zed" --version
