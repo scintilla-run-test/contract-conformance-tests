@@ -1,0 +1,56 @@
+name: zed global bin selection proof
+
+on:
+  push:
+    branches:
+      - proof/zed-global-bin-selection-ac96
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: zed-global-bin-selection-ac96
+  cancel-in-progress: false
+
+jobs:
+  exact-head-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out exact zed-cli candidate
+        uses: actions/checkout@v4
+        with:
+          repository: zed-pkg/zed-cli
+          ref: cdc94c34fd91d34d48907807f395d834948b7904
+          path: zed-cli
+          persist-credentials: false
+
+      - name: Install pinned Rust toolchain
+        run: rustup toolchain install 1.88.0 --profile minimal --component rustfmt,clippy
+
+      - name: Verify exact source identity
+        working-directory: zed-cli
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "cdc94c34fd91d34d48907807f395d834948b7904"
+
+      - name: Formatting
+        working-directory: zed-cli
+        run: cargo +1.88.0 fmt --all -- --check
+
+      - name: Global package unit tests
+        working-directory: zed-cli
+        run: cargo +1.88.0 test --locked --lib global::tests
+
+      - name: Global flags contract tests
+        working-directory: zed-cli
+        run: cargo +1.88.0 test --locked --lib global_flags::tests
+
+      - name: Revision-pinned git installer regression tests
+        working-directory: zed-cli
+        run: cargo +1.88.0 test --locked --bin zed-git-install
+
+      - name: Clippy
+        working-directory: zed-cli
+        run: cargo +1.88.0 clippy --locked --all-targets --all-features -- -D warnings
