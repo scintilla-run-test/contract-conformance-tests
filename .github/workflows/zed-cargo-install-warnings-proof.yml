@@ -17,7 +17,7 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     env:
-      TARGET_SHA: f7b56532d5dc245f416ea44e87ee81cb217f23a7
+      TARGET_SHA: 059872502653d3278e5cd0ef4f10dab9badf1fa2
       CARGO_NET_GIT_FETCH_WITH_CLI: "true"
     steps:
       - name: Checkout exact zed-cli candidate
