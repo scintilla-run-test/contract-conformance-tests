@@ -53,12 +53,18 @@ mod tests {
 
     #[test]
     fn structured_registry_matches_contract() {
-        assert_eq!(structured_codec_content_type("json"), Some("application/json"));
+        assert_eq!(
+            structured_codec_content_type("json"),
+            Some("application/json")
+        );
         assert_eq!(
             structured_codec_content_type("messagepack"),
             Some("application/msgpack")
         );
-        assert_eq!(structured_codec_content_type("cbor"), Some("application/cbor"));
+        assert_eq!(
+            structured_codec_content_type("cbor"),
+            Some("application/cbor")
+        );
         assert_eq!(
             structured_codec_content_type("protobuf"),
             Some("application/x-protobuf")
