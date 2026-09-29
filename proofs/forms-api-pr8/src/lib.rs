@@ -1,9 +1,4 @@
-use axum::{
-    Json, Router,
-    extract::DefaultBodyLimit,
-    http::StatusCode,
-    routing::post,
-};
+use axum::{Json, Router, extract::DefaultBodyLimit, http::StatusCode, routing::post};
 use serde_json::{Value, json};
 
 pub const SOURCE_PR_HEAD: &str = "fc6e9052f6f5c03fd4afbe90e25ad8ccb2966493";
