@@ -45,7 +45,11 @@ fn update_json_accept_preference(
 ) {
     for item in value.split(',') {
         let mut pieces = item.split(';');
-        let media_type = pieces.next().unwrap_or_default().trim().to_ascii_lowercase();
+        let media_type = pieces
+            .next()
+            .unwrap_or_default()
+            .trim()
+            .to_ascii_lowercase();
         let specificity = match media_type.as_str() {
             JSON_MEDIA_TYPE => 2,
             "application/*" => 1,
@@ -112,12 +116,21 @@ mod tests {
     fn multiple_accept_header_lines_share_one_specificity_decision() {
         let mut headers = HeaderMap::new();
         headers.append(header::ACCEPT, HeaderValue::from_static("*/*;q=1"));
-        headers.append(header::ACCEPT, HeaderValue::from_static("application/json;q=0"));
+        headers.append(
+            header::ACCEPT,
+            HeaderValue::from_static("application/json;q=0"),
+        );
         assert!(!accept_headers_allow_json(&headers));
 
         let mut accepted = HeaderMap::new();
-        accepted.append(header::ACCEPT, HeaderValue::from_static("application/msgpack"));
-        accepted.append(header::ACCEPT, HeaderValue::from_static("application/json;q=0.3"));
+        accepted.append(
+            header::ACCEPT,
+            HeaderValue::from_static("application/msgpack"),
+        );
+        accepted.append(
+            header::ACCEPT,
+            HeaderValue::from_static("application/json;q=0.3"),
+        );
         assert!(accept_headers_allow_json(&accepted));
     }
 
