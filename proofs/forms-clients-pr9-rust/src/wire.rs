@@ -188,7 +188,7 @@ mod tests {
     }
 
     fn body() -> Vec<u8> {
-        return br#"{"ok":true}"#.to_vec();
+        return br#"{\"ok\":true}"#.to_vec();
     }
 
     #[test]
@@ -219,9 +219,7 @@ mod tests {
             },
         ] {
             let codec = CountingCodec(std::cell::Cell::new(0));
-            assert!(
-                decode_structured_response::<serde_json::Value, _>(&response, &codec).is_err()
-            );
+            assert!(decode_structured_response::<serde_json::Value, _>(&response, &codec).is_err());
             assert_eq!(codec.0.get(), 0);
         }
         let codec = CountingCodec(std::cell::Cell::new(0));
