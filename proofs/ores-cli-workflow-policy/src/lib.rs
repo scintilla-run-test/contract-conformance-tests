@@ -206,8 +206,7 @@ mod tests {
         let workflow = "name: CI\npermissions: read-all\njobs:\n  test:\n    runs-on: ubuntu-24.04\n    steps: []\n";
         let findings = audit_workflow(workflow);
         assert!(findings.iter().any(|finding| {
-            finding.code == "workflow-job-timeout-missing"
-                && finding.job.as_deref() == Some("test")
+            finding.code == "workflow-job-timeout-missing" && finding.job.as_deref() == Some("test")
         }));
     }
 
