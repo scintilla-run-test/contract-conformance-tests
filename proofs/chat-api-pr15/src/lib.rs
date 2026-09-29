@@ -1,4 +1,4 @@
-use axum::http::{HeaderMap, HeaderValue, header};
+use axum::http::{HeaderMap, header};
 
 pub const SOURCE_PR_HEAD: &str = "eea7ce1fc26a3b4ee99a0576824f1724618a664e";
 const JSON_MEDIA_TYPE: &str = "application/json";
@@ -89,6 +89,8 @@ fn update_json_accept_preference(
 
 #[cfg(test)]
 mod tests {
+    use axum::http::HeaderValue;
+
     use super::*;
 
     #[test]
