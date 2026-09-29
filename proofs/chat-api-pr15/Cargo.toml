@@ -1,0 +1,10 @@
+[package]
+name = "chat-api-pr15-proof"
+version = "0.1.0"
+edition = "2024"
+
+[lints.clippy]
+needless_return = "allow"
+
+[dependencies]
+axum = "0.8"
