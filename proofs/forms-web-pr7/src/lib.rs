@@ -23,7 +23,8 @@ pub fn router() -> Router {
 }
 
 async fn enforce_json_read_accept(request: Request, next: Next) -> Response {
-    if request.method() != Method::GET || !request.uri().path().starts_with(TYPED_FORM_PATH_PREFIX) {
+    if request.method() != Method::GET || !request.uri().path().starts_with(TYPED_FORM_PATH_PREFIX)
+    {
         return next.run(request).await;
     }
     if !accept_headers_allow_json(request.headers()) {
@@ -119,9 +120,18 @@ mod tests {
 
     #[tokio::test]
     async fn typed_read_rejects_binary_only_accept() {
-        assert_eq!(status("/v1/forms/a", "application/msgpack").await, StatusCode::NOT_ACCEPTABLE);
-        assert_eq!(status("/v1/forms/a", "application/cbor").await, StatusCode::NOT_ACCEPTABLE);
-        assert_eq!(status("/v1/forms/a", "application/x-protobuf").await, StatusCode::NOT_ACCEPTABLE);
+        assert_eq!(
+            status("/v1/forms/a", "application/msgpack").await,
+            StatusCode::NOT_ACCEPTABLE
+        );
+        assert_eq!(
+            status("/v1/forms/a", "application/cbor").await,
+            StatusCode::NOT_ACCEPTABLE
+        );
+        assert_eq!(
+            status("/v1/forms/a", "application/x-protobuf").await,
+            StatusCode::NOT_ACCEPTABLE
+        );
     }
 
     #[tokio::test]
@@ -138,12 +148,18 @@ mod tests {
 
     #[tokio::test]
     async fn typed_read_accepts_json() {
-        assert_eq!(status("/v1/forms/a", "application/json").await, StatusCode::OK);
+        assert_eq!(
+            status("/v1/forms/a", "application/json").await,
+            StatusCode::OK
+        );
     }
 
     #[tokio::test]
     async fn ssr_and_component_routes_ignore_typed_json_guard() {
-        assert_eq!(status("/forms/a", "application/msgpack").await, StatusCode::OK);
+        assert_eq!(
+            status("/forms/a", "application/msgpack").await,
+            StatusCode::OK
+        );
         assert_eq!(
             status("/components/forms/a", "application/cbor").await,
             StatusCode::OK
