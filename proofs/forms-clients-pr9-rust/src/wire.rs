@@ -75,9 +75,17 @@ pub struct WireCodecError(pub String);
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ByteResponseError {
-    ResponseTooLarge { actual: usize, max: usize },
-    HttpStatus { status: u16 },
-    ContentTypeMismatch { expected: &'static str, actual: String },
+    ResponseTooLarge {
+        actual: usize,
+        max: usize,
+    },
+    HttpStatus {
+        status: u16,
+    },
+    ContentTypeMismatch {
+        expected: &'static str,
+        actual: String,
+    },
     Decode(WireCodecError),
 }
 
@@ -114,7 +122,11 @@ pub fn decode_structured_response<T, C>(
 where
     C: StructuredWireCodec<T>,
 {
-    return decode_structured_response_with_limit(response, codec, DEFAULT_MAX_BINARY_RESPONSE_BYTES);
+    return decode_structured_response_with_limit(
+        response,
+        codec,
+        DEFAULT_MAX_BINARY_RESPONSE_BYTES,
+    );
 }
 
 pub fn decode_structured_response_with_limit<T, C>(
@@ -132,18 +144,27 @@ where
         });
     }
     if !(200..300).contains(&response.status) {
-        return Err(ByteResponseError::HttpStatus { status: response.status });
+        return Err(ByteResponseError::HttpStatus {
+            status: response.status,
+        });
     }
     let expected = codec.codec().content_type();
     let actual = normalize_media_type(&response.content_type);
     if !actual.eq_ignore_ascii_case(expected) {
         return Err(ByteResponseError::ContentTypeMismatch { expected, actual });
     }
-    return codec.decode(&response.body).map_err(ByteResponseError::Decode);
+    return codec
+        .decode(&response.body)
+        .map_err(ByteResponseError::Decode);
 }
 
 fn normalize_media_type(value: &str) -> String {
-    return value.split(';').next().unwrap_or_default().trim().to_ascii_lowercase();
+    return value
+        .split(';')
+        .next()
+        .unwrap_or_default()
+        .trim()
+        .to_ascii_lowercase();
 }
 
 #[cfg(test)]
@@ -161,7 +182,8 @@ mod tests {
         }
         fn decode(&self, bytes: &[u8]) -> Result<serde_json::Value, WireCodecError> {
             self.0.set(self.0.get() + 1);
-            return serde_json::from_slice(bytes).map_err(|error| WireCodecError(error.to_string()));
+            return serde_json::from_slice(bytes)
+                .map_err(|error| WireCodecError(error.to_string()));
         }
     }
 
@@ -185,16 +207,33 @@ mod tests {
     #[test]
     fn rejects_before_decoder() {
         for response in [
-            ByteResponse { status: 500, content_type: "application/json".into(), body: body() },
-            ByteResponse { status: 200, content_type: "application/msgpack".into(), body: body() },
+            ByteResponse {
+                status: 500,
+                content_type: "application/json".into(),
+                body: body(),
+            },
+            ByteResponse {
+                status: 200,
+                content_type: "application/msgpack".into(),
+                body: body(),
+            },
         ] {
             let codec = CountingCodec(std::cell::Cell::new(0));
-            assert!(decode_structured_response::<serde_json::Value, _>(&response, &codec).is_err());
+            assert!(
+                decode_structured_response::<serde_json::Value, _>(&response, &codec).is_err()
+            );
             assert_eq!(codec.0.get(), 0);
         }
         let codec = CountingCodec(std::cell::Cell::new(0));
-        let response = ByteResponse { status: 200, content_type: "application/json".into(), body: body() };
-        assert!(decode_structured_response_with_limit::<serde_json::Value, _>(&response, &codec, 1).is_err());
+        let response = ByteResponse {
+            status: 200,
+            content_type: "application/json".into(),
+            body: body(),
+        };
+        assert!(
+            decode_structured_response_with_limit::<serde_json::Value, _>(&response, &codec, 1)
+                .is_err()
+        );
         assert_eq!(codec.0.get(), 0);
     }
 }
