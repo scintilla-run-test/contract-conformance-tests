@@ -1,0 +1,10 @@
+[package]
+name = "forms-clients-pr9-wasm-proof"
+version = "0.1.0"
+edition = "2024"
+
+[lints.clippy]
+needless_return = "allow"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
