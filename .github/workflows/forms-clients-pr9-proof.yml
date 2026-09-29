@@ -52,3 +52,22 @@ jobs:
       - name: Test
         working-directory: proofs/forms-clients-pr9-ts
         run: npm test
+
+  dart:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+      - name: Verify source pin and no generic raw request helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -F 'c75075a7eb2086a17ef717310a24f72b288f5b99' proofs/forms-clients-pr9-dart/lib/wire.dart
+          ! grep -F 'rawBinaryRequest' proofs/forms-clients-pr9-dart/lib/wire.dart
+      - name: Analyze
+        working-directory: proofs/forms-clients-pr9-dart
+        run: dart analyze
+      - name: Test
+        working-directory: proofs/forms-clients-pr9-dart
+        run: dart --enable-asserts run bin/proof.dart
