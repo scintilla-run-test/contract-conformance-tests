@@ -1,0 +1,30 @@
+name: Forms web PR 7 negotiation proof
+
+on:
+  push:
+    branches:
+      - proof/forms-web-pr7-6638f1d
+
+permissions:
+  contents: read
+
+jobs:
+  rust:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: Verify source pin
+        run: grep -F '6638f1dea23c2b181ff1e603c9c56008a38be933' proofs/forms-web-pr7/src/lib.rs
+      - name: Format
+        working-directory: proofs/forms-web-pr7
+        run: cargo fmt --all -- --check
+      - name: Test
+        working-directory: proofs/forms-web-pr7
+        run: cargo test
+      - name: Clippy
+        working-directory: proofs/forms-web-pr7
+        run: cargo clippy --all-targets -- -D warnings
