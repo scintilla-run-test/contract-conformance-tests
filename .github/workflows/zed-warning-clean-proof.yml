@@ -1,0 +1,63 @@
+name: zed warning clean exact-head proof
+
+on:
+  push:
+    branches:
+      - proof/zed-warning-clean-7c15791
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: zed-warning-clean-7c15791
+  cancel-in-progress: false
+
+jobs:
+  exact-head-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Check out exact zed-cli candidate
+        uses: actions/checkout@v4
+        with:
+          repository: zed-pkg/zed-cli
+          ref: 7c15791ec78ad503663718f600fcbc6839001708
+          path: zed-cli
+          persist-credentials: false
+
+      - name: Install pinned Rust toolchain
+        run: rustup toolchain install 1.88.0 --profile minimal --component rustfmt,clippy
+
+      - name: Verify exact source identity
+        working-directory: zed-cli
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "7c15791ec78ad503663718f600fcbc6839001708"
+
+      - name: Formatting
+        working-directory: zed-cli
+        run: cargo +1.88.0 fmt --all -- --check
+
+      - name: Library compile with every warning denied
+        working-directory: zed-cli
+        env:
+          RUSTFLAGS: -D warnings
+        run: cargo +1.88.0 check --locked --lib
+
+      - name: Cargo-install zed with every warning denied
+        working-directory: zed-cli
+        env:
+          RUSTFLAGS: -D warnings
+        run: cargo +1.88.0 install --locked --path . --bin zed --root "$RUNNER_TEMP/zed-warning-clean"
+
+      - name: Startup and warning-boundary regression tests
+        working-directory: zed-cli
+        run: |
+          cargo +1.88.0 test --locked --lib terminal_context::tests
+          cargo +1.88.0 test --locked --lib cli_model::tests
+          cargo +1.88.0 test --locked --lib global_flags::tests
+
+      - name: Clippy library warning gate
+        working-directory: zed-cli
+        run: cargo +1.88.0 clippy --locked --lib -- -D warnings
