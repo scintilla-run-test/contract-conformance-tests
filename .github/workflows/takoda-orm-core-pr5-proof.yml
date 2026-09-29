@@ -1,0 +1,78 @@
+name: Takoda ORM PR5 exact-head proof
+
+on:
+  pull_request:
+    paths:
+      - "proofs/takoda-orm-core-pr5/**"
+      - ".github/workflows/takoda-orm-core-pr5-proof.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  rust:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: takoda_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d takoda_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/takoda_test
+    steps:
+      - name: Checkout verifier
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+
+      - name: Verify exact source lock
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -qx 'source_repo=takoda-automation/tkda-orm-core' proofs/takoda-orm-core-pr5/SOURCE.lock
+          grep -qx 'source_pr=5' proofs/takoda-orm-core-pr5/SOURCE.lock
+          grep -qx 'source_head_sha=7a26fd1833916b7448c8d72f202526a41f4089ba' proofs/takoda-orm-core-pr5/SOURCE.lock
+
+      - name: Checkout exact Takoda ORM head
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: takoda-automation/tkda-orm-core
+          ref: 7a26fd1833916b7448c8d72f202526a41f4089ba
+          path: candidate
+          persist-credentials: false
+
+      - name: Verify checkout identity
+        working-directory: candidate
+        run: test "$(git rev-parse HEAD)" = "7a26fd1833916b7448c8d72f202526a41f4089ba"
+
+      - name: Install Rust stable
+        run: |
+          rustup toolchain install stable --profile minimal --component rustfmt --component clippy
+          rustup default stable
+
+      - name: Format
+        working-directory: candidate
+        run: cargo fmt --check
+
+      - name: Check
+        working-directory: candidate
+        run: cargo check --all-features --all-targets
+
+      - name: Clippy
+        working-directory: candidate
+        run: cargo clippy --all-features --all-targets -- -D warnings -A clippy::needless_return
+
+      - name: Live Postgres tests
+        working-directory: candidate
+        run: cargo test --all-features
