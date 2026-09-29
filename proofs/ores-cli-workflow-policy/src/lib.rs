@@ -203,8 +203,7 @@ mod tests {
 
     #[test]
     fn executable_job_requires_timeout() {
-        let workflow =
-            "name: CI\npermissions: read-all\njobs:\n  test:\n    runs-on: ubuntu-24.04\n    steps: []\n";
+        let workflow = "name: CI\npermissions: read-all\njobs:\n  test:\n    runs-on: ubuntu-24.04\n    steps: []\n";
         let findings = audit_workflow(workflow);
         assert!(findings.iter().any(|finding| {
             finding.code == "workflow-job-timeout-missing"
@@ -240,19 +239,22 @@ mod tests {
     fn mutable_action_tag_is_rejected() {
         let workflow = "name: CI\npermissions: read-all\njobs:\n  test:\n    runs-on: ubuntu-24.04\n    timeout-minutes: 10\n    steps:\n      - uses: actions/checkout@v4\n";
         let findings = audit_workflow(workflow);
-        assert!(findings
-            .iter()
-            .any(|finding| finding.code == "workflow-action-ref-mutable"));
+        assert!(
+            findings
+                .iter()
+                .any(|finding| finding.code == "workflow-action-ref-mutable")
+        );
     }
 
     #[test]
     fn missing_top_level_permissions_is_rejected() {
-        let workflow =
-            "name: CI\njobs:\n  test:\n    runs-on: ubuntu-24.04\n    timeout-minutes: 10\n    steps: []\n";
+        let workflow = "name: CI\njobs:\n  test:\n    runs-on: ubuntu-24.04\n    timeout-minutes: 10\n    steps: []\n";
         let findings = audit_workflow(workflow);
-        assert!(findings
-            .iter()
-            .any(|finding| finding.code == "workflow-permissions-top-level-invalid"));
+        assert!(
+            findings
+                .iter()
+                .any(|finding| finding.code == "workflow-permissions-top-level-invalid")
+        );
     }
 
     #[test]
