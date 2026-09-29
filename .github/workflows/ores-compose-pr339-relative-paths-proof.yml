@@ -1,0 +1,62 @@
+name: ores-compose pr339 relative config paths proof
+
+on:
+  push:
+    branches:
+      - proof/ores-compose-pr339-relative-paths
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ores-compose-pr339-relative-paths
+  cancel-in-progress: false
+
+jobs:
+  exact-head-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      ORES_CLI_READ_TOKEN: ${{ secrets.ORES_CLI_READ_TOKEN }}
+    steps:
+      - name: Require scoped read token
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${ORES_CLI_READ_TOKEN:-}"
+
+      - name: Configure private Git reads
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config --global url."https://x-access-token:${ORES_CLI_READ_TOKEN}@github.com/".insteadOf "https://github.com/"
+
+      - name: Check out exact ores-compose candidate
+        uses: actions/checkout@v4
+        with:
+          repository: ORESoftware/ores-compose
+          ref: de9159245f7a971b24daa3b86e46eb205fa1075e
+          path: ores-compose
+          token: ${{ secrets.ORES_CLI_READ_TOKEN }}
+          persist-credentials: false
+
+      - name: Verify exact source identity
+        working-directory: ores-compose
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "de9159245f7a971b24daa3b86e46eb205fa1075e"
+          test "$(git hash-object tests/cli_relative_config_paths.rs)" = "caf2d59b4e84de79fa3888c8c7e54f99b155c2c9"
+
+      - name: Formatting
+        working-directory: ores-compose
+        run: cargo fmt --all -- --check
+
+      - name: Exact relative config regression
+        working-directory: ores-compose
+        run: cargo test --locked --test cli_relative_config_paths
+
+      - name: Clippy
+        working-directory: ores-compose
+        run: cargo clippy --locked --all-targets --all-features -- -D warnings
