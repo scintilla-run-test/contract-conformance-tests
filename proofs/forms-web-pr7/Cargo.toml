@@ -1,0 +1,12 @@
+[package]
+name = "forms-web-pr7-proof"
+version = "0.1.0"
+edition = "2024"
+
+[lints.clippy]
+needless_return = "allow"
+
+[dependencies]
+axum = "0.8"
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+tower = { version = "0.5", features = ["util"] }
