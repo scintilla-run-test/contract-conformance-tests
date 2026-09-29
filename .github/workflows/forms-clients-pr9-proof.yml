@@ -1,0 +1,30 @@
+name: Forms clients PR 9 Rust proof
+
+on:
+  push:
+    branches:
+      - proof/forms-clients-pr9-c75075a
+
+permissions:
+  contents: read
+
+jobs:
+  rust:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: Verify source pin
+        run: grep -F 'c75075a7eb2086a17ef717310a24f72b288f5b99' proofs/forms-clients-pr9-rust/src/lib.rs
+      - name: Format
+        working-directory: proofs/forms-clients-pr9-rust
+        run: cargo fmt --all -- --check
+      - name: Test
+        working-directory: proofs/forms-clients-pr9-rust
+        run: cargo test
+      - name: Clippy
+        working-directory: proofs/forms-clients-pr9-rust
+        run: cargo clippy --all-targets -- -D warnings
