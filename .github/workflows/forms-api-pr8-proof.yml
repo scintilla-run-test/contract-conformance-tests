@@ -1,0 +1,30 @@
+name: Forms API PR 8 proof
+
+on:
+  push:
+    branches:
+      - proof/forms-api-pr8-fc6e905
+
+permissions:
+  contents: read
+
+jobs:
+  rust:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: Verify source pin
+        run: grep -F 'fc6e9052f6f5c03fd4afbe90e25ad8ccb2966493' proofs/forms-api-pr8/src/lib.rs
+      - name: Format
+        working-directory: proofs/forms-api-pr8
+        run: cargo fmt --all -- --check
+      - name: Test
+        working-directory: proofs/forms-api-pr8
+        run: cargo test
+      - name: Clippy
+        working-directory: proofs/forms-api-pr8
+        run: cargo clippy --all-targets -- -D warnings
