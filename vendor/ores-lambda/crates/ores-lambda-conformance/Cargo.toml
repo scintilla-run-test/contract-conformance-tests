@@ -1,0 +1,19 @@
+[package]
+name = "ores-lambda-conformance"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Executable conformance checker for ores-lambda fleet contracts"
+default-run = "ores-lambda-conformance"
+
+[dependencies]
+anyhow.workspace = true
+ores-lambda-core = { path = "../ores-lambda-core" }
+serde.workspace = true
+serde_json.workspace = true
+toml.workspace = true
+
+[lints]
+workspace = true
