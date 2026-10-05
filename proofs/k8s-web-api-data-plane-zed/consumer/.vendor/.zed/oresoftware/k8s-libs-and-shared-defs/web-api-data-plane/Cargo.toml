@@ -1,9 +1,0 @@
-[package]
-name = "k8s-web-api-data-plane"
-version = "0.1.0"
-edition = "2021"
-rust-version = "1.80"
-publish = false
-
-[lib]
-path = "src/lib.rs"

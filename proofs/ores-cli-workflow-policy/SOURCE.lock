@@ -1,5 +1,0 @@
-source_repo=ORESoftware/ores-cli
-source_pr=421
-source_head_sha=f788fbb4356c914f559d3f0bd7e4260ead3443a9
-source_merge_sha=99f219a58ed7ab25e679ca3736d00f9c44072153
-contract=workflow-timeout-and-supply-chain-policy-v1
