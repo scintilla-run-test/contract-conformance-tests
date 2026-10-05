@@ -1,0 +1,3 @@
+source_repository=ores-truffle-oreslang/oreslang-format
+source_head=f635019a798515743b8a1ca0b283b3d046643bba
+verification=source Rust/package blobs match by git blob SHA before rustfmt
