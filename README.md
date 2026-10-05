@@ -1,18 +1,102 @@
-# scintilla-run-test/contract-conformance-tests
+# oreslang-format
 
-Deterministic state-model, idempotency, serialization, and protocol contract conformance tests.
+The canonical formatter for Oreslang source code.
 
-This repository is the `contract` deep-test suite for `scintilla-run`. It is intentionally dependency-light and deterministic so failures can be reproduced locally without production credentials or customer data.
+There is deliberately **one format and no style configuration**. The same Rust
+library powers the CLI, so editor integrations, CI, and local development use
+identical behavior.
 
-The suite also contains an implementation-neutral deployment-generation oracle. It proves that immutable artifact identities cannot be rebound to different bytes, code-only activation preserves the current runtime epoch, stale epochs are rejected, idempotency keys cannot be reused for different intent, failover advances the epoch before reactivation, and rollback reactivates a previously admitted immutable generation rather than mutating it.
+## Canonical style
 
-## Run
+- two spaces per indentation level;
+- LF line endings, no trailing whitespace, one final newline;
+- at most one ordinary blank line;
+- **two blank lines between sibling executable function/routine/method declarations**;
+- executable declarations and method implementations use the slim arrow `->`;
+- interface/trait callable signatures use the type-level fat arrow `=>`;
+- class headers keep `as` after the complete inheritance/conformance clause:
 
-```bash
-PYTHONPATH=src python -m unittest discover -s tests -v
-python scripts/verify_repository.py
+```ores
+define class User extends Entity implements Named, Serializable as
+  pub val String name;
+
+  pub render() -> String {
+    return self.name;
+  }
+end
 ```
 
-The initial models are executable rather than placeholders. Product adapters should be added through focused pull requests while preserving the reference-model tests as an oracle.
+The nesting engine understands `module`, `class`, `interface`, `trait`,
+`struct`, actor/braced bodies, `end`, `if`/`fi`, and `do`/`done`. In particular,
+`implements Foo, Bar` never creates formatter nesting; the class body begins
+only after the class header and is closed by its matching `end`.
 
-Tracking: https://github.com/ORESoftware/ai-agent-coordinator.rs/issues/139
+The formatter is intentionally conservative about grammar that is still
+changing: it does not reorder declarations, imports, traits, interfaces, or
+class conformance lists.
+
+## CLI
+
+```bash
+cargo install --path .
+
+# default: preview only, never modify files
+oresfmt src examples
+# would format src/foo.ores
+
+# explicit in-place rewrite
+oresfmt --write src examples
+
+# CI / pre-commit mode; exits 1 if anything would change
+oresfmt --check .
+
+# stdin -> stdout
+oresfmt - < input.ores
+
+# one file -> stdout
+oresfmt --stdout example.ores
+```
+
+The installed binary is `oresfmt`; `oreslang-format` is also provided as an
+alias. Directories are walked recursively and only `.ores` files are selected.
+
+### Safe writes
+
+Filesystem inputs are **dry-run by default**. `--write` is the only normal mode
+that modifies files, and it performs a full preflight before touching any file.
+This prevents a later unsafe path from leaving a project half-formatted.
+
+For every file that would change, `--write` fails closed when the file is:
+
+- tracked by Git but has staged or unstaged changes;
+- untracked or ignored;
+- outside a Git worktree.
+
+The overrides are intentionally explicit:
+
+```bash
+oresfmt --write --ok-to-mod-dirty-files src
+oresfmt --write --ok-to-mod-untracked-files generated
+oresfmt --write --ok-to-mod-outside-git /tmp/example.ores
+```
+
+These flags only relax write-safety checks. They do not change formatting style.
+
+## Rust SDK
+
+```rust
+use oreslang_format::{format_source, is_formatted};
+
+let formatted = format_source(source)?;
+let clean = is_formatted(&formatted)?;
+assert!(clean);
+```
+
+`format_source` is idempotent: formatting canonical output again produces the
+same bytes.
+
+## Why no configuration?
+
+Oreslang should have one mechanically enforceable source style. This avoids
+project-specific formatter drift and gives compiler diagnostics, generated
+code, examples, editor integrations, and code review the same layout contract.
