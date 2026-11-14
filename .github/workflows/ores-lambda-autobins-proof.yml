@@ -1,0 +1,55 @@
+name: ores-lambda Cargo target admission exact-head proof
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/ores-lambda-autobins-proof.yml"
+      - "vendor/ores-lambda/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  exact-head:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout proof carrier
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+
+      - name: Verify exact source identities
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, subprocess
+          root = "vendor/ores-lambda"
+          lock = json.load(open(f"{root}/SOURCE.lock.json"))
+          assert lock["repository"] == "ORESoftware/ores-lambda"
+          assert lock["commit"] == "2d2d0b8ea3d10be3a3d218af587692631ae6c1d5"
+          for path, expected in sorted(lock["files"].items()):
+              actual = subprocess.check_output(["git", "hash-object", f"{root}/{path}"], text=True).strip()
+              if actual != expected:
+                  raise SystemExit(f"{path}: expected {expected}, got {actual}")
+          PY
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+
+      - name: Test Cargo target admission regressions
+        working-directory: vendor/ores-lambda
+        run: cargo test -p ores-lambda-conformance --bin ores-lambda
+
+      - name: Format
+        working-directory: vendor/ores-lambda
+        run: cargo fmt --all -- --check
+
+      - name: Clippy
+        working-directory: vendor/ores-lambda
+        run: cargo clippy -p ores-lambda-conformance --bin ores-lambda -- -D warnings
